@@ -18,10 +18,12 @@ Storage * next;
 Storage * last;
 } Storage;
 
-
-size_t storage_addData(void * data, size_t size);
+size_t storage_copyTo(void * data, size_t size);
 void * storage_alloc(size_t size, size_t * id);
 void storage_delete(void * ptr);
+
+size_t storage_add(void * ptr, size_t size);
+void storage_remove(void * ptr);
 
 #pragma endregion
 
@@ -54,8 +56,6 @@ typedef struct
 {
 size_t reservedSize;
 
-// size_t count;
-
 size_t iCount;
 size_t dCount;
 size_t rCount;
@@ -63,7 +63,6 @@ size_t rCount;
 uint32_t ** iStack;
 uint32_t ** dStack;
 uint32_t ** rStack;
-
 
 Stack * next;
 Stack * last;
@@ -87,10 +86,6 @@ typedef struct
 } Pineaple;
 
 void pineaple_run(Pineaple * vm);
-
-void pineaple_pushFunction(Pineaple * vm, void * function);
-void pineaple_pushData(Pineaple * vm, void * function);
-void pineaple_pushReturn(Pineaple * vm, void * function);
 
 #pragma endregion
 
