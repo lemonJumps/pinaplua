@@ -1,5 +1,8 @@
 # WELCOME! TO PINAPLE LUA or PINAPLUA
 
+🚧 Under construction: pinaplua is still not in operational state 🚧
+please be patient with me, and star the repository if you want to recieve updates :D
+
 ## what is pinaplua?
 I'm glad you asked! Two parts, or ehm 3! actually. </br>
 
