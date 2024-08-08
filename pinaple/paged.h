@@ -2,6 +2,7 @@
 #define _PAGED_H_
 
 #include <stdint.h>
+#include <stddef.h>
 
 /**
  * @brief sotres paged memory
@@ -10,33 +11,33 @@
  * 
  * 
  */
-typedef struct
+struct Paged
 {
 size_t reservedSize;
     
-int (*isFull)(Paged * paged);
-int (*isEmpty)(Paged * paged);
-void (*allocate)(Paged * paged, size_t size);
-void (*deallocate)(Paged * paged);
+int (*isFull)(struct Paged * paged);
+int (*isEmpty)(struct Paged * paged);
+void (*allocate)(struct Paged * paged, size_t size);
+void (*deallocate)(struct Paged * paged);
 
 void * ptr;
 
-Paged * next;
-Paged * last;
-} Paged;
+struct Paged * next;
+struct Paged * last;
+};
 
-void paged_expand(Paged * paged);
+void paged_expand(struct Paged * paged);
 
-void paged_checkSpace(Paged * paged);
+struct Paged * paged_checkSpace(struct Paged * paged);
 
-Paged * paged_new(
-    int (*isFull)(Paged * paged),
-    int (*isEmpty)(Paged * paged),
-    void (*allocate)(Paged * paged, size_t size),
-    void (*deallocate)(Paged * paged),
+struct Paged * paged_new(
+    int (*isFull)(struct Paged * paged),
+    int (*isEmpty)(struct Paged * paged),
+    void (*allocate)(struct Paged * paged, size_t size),
+    void (*deallocate)(struct Paged * paged),
     size_t size
     );
 
-void paged_delete(Paged * paged);
+void paged_delete(struct Paged * paged);
 
 #endif

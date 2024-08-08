@@ -2,18 +2,19 @@
 #include <stdint.h>
 
 #include "pinconfig.h"
-#include "memory.h"
+#include <memory.h>
+#include <stdlib.h>
 
 // you may notice that this looks awfully like OOP.. that's because it is :D
 
 void * _paged_alloc(
-    int (*isFull)(Paged * paged, size_t reservedSize),
-    int (*isEmpty)(Paged * paged, size_t reservedSize),
-    void (*allocate)(Paged * paged, size_t size),
-    void (*deallocate)(Paged * paged),
+    int (*isFull)(struct Paged * paged),
+    int (*isEmpty)(struct Paged * paged),
+    void (*allocate)(struct Paged * paged, size_t size),
+    void (*deallocate)(struct Paged * paged),
     size_t size)
 {
-    Paged * ptr = MALLOC(sizeof(Paged));
+    struct Paged * ptr = MALLOC(sizeof(struct Paged));
     ptr->isFull = isFull;
     ptr->isEmpty = isEmpty;
     ptr->allocate = allocate;
@@ -26,7 +27,7 @@ void * _paged_alloc(
     return ptr;
 }
 
-void _paged_delete(Paged * paged)
+void _paged_delete(struct Paged * paged)
 {
     if (paged->deallocate == NULL)
     {
@@ -38,20 +39,20 @@ void _paged_delete(Paged * paged)
     FREE(paged);
 }
 
-void paged_expand(Paged * paged)
+void paged_expand(struct Paged * paged)
 {
-    Paged * ptr = paged;
+    struct Paged * ptr = paged;
 
     // go to last element
     while (ptr != NULL) {ptr = ptr->next;}
 
-    ptr->next = _paged_alloc(ptr->isFull, ptr->isEmpty, ptr->allocate, ptr->deallocate, );
+    ptr->next = _paged_alloc(ptr->isFull, ptr->isEmpty, ptr->allocate, ptr->deallocate, ptr->reservedSize);
 }
 
-void paged_checkSpace(Paged * paged)
+struct Paged * paged_checkSpace(struct Paged * paged)
 {
 
-    Paged * ptr = paged;
+    struct Paged * ptr = paged;
 
     // go to last element
     while (ptr != NULL) {ptr = ptr->next;}
@@ -59,44 +60,52 @@ void paged_checkSpace(Paged * paged)
     if (ptr->isFull == NULL)
     {
         ERROR("paged - isFull is not assigned");
-        return;
+        return NULL;
     }
     
     if (ptr->isEmpty == NULL)
     {
         ERROR("paged - isEmpty is not assigned");
-        return;
+        return NULL;
     }
 
     if (ptr->isFull(ptr) > 0)
     {
         paged_expand(ptr);
+        while (ptr != NULL) {ptr = ptr->next;}
     }
     else if (ptr->isEmpty(ptr) > 0)
     {
         // keep at least one
-        if (ptr->next != NULL && ptr->last != NULL)
+        if (ptr->next == NULL && ptr->last != NULL)
         {
+            struct Paged * rptr = ptr->last;
+            
             _paged_delete(ptr);
+
+            return rptr;
         }
     }
     
+    return ptr;
 }
 
-Paged * paged_new(
-    int (*isFull)(Paged * paged),
-    int (*isEmpty)(Paged * paged),
-    void (*allocate)(Paged * paged, size_t size),
-    void (*deallocate)(Paged * paged),
+struct Paged * paged_new(
+    int (*isFull)(struct Paged * paged),
+    int (*isEmpty)(struct Paged * paged),
+    void (*allocate)(struct Paged * paged, size_t size),
+    void (*deallocate)(struct Paged * paged),
     size_t size
     )
 {
-    return _paged_alloc(isFull, isEmpty, allocate, deallocate, size);
+    struct Paged * ptr = _paged_alloc(isFull, isEmpty, allocate, deallocate, size);
+
+    return ptr;
 }
 
-void paged_delete(Paged * paged)
+void paged_delete(struct Paged * paged)
 {
-    Paged * ptr = paged;
+    struct Paged * ptr = paged;
 
     // go to last element
     while (ptr != NULL) {ptr = ptr->next;}

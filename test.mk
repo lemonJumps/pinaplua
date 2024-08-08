@@ -4,13 +4,13 @@ SOURCEDIR := $(PROJDIR)/
 BUILDDIR := $(PROJDIR)/Build
 
 # Name of the final executable
-TARGET = myApp
+TARGET = test
 
 # Decide whether the commands will be shwon or not
 VERBOSE = TRUE
 
 # Create the list of directories
-DIRS = pinaple pizza
+DIRS = pinaple pizza tests
 SOURCEDIRS = $(foreach dir, $(DIRS), $(addprefix $(SOURCEDIR)/, $(dir)))
 TARGETDIRS = $(foreach dir, $(DIRS), $(addprefix $(BUILDDIR)/, $(dir)))
 
@@ -31,12 +31,22 @@ DEPS = $(OBJS:.o=.d)
 
 # Name the compiler
 CC = gcc
+CC_ARGS = -ggdb
 
-RM = rm -rf 
-RMDIR = rm -rf 
-MKDIR = mkdir -p
-SEP=/
-
+# OS specific part
+ifeq ($(OS),Windows_NT)
+    RM = del /F /Q 
+    RMDIR = -RMDIR /S /Q
+    MKDIR = -mkdir
+    ERRIGNORE = 
+    SEP=\\
+else
+    RM = rm -rf 
+    RMDIR = rm -rf 
+    MKDIR = mkdir -p
+    ERRIGNORE = 2>/dev/null
+    SEP=/
+endif
 # Remove space after separator
 PSEP = $(strip $(SEP))
 
@@ -51,13 +61,10 @@ endif
 define generateRules
 $(1)/%.o: %.c
 	@echo Building $$@
-	$(HIDE)$(CC) -c $$(INCLUDES) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD
+	$(HIDE)$(CC) -c $$(INCLUDES) -o $$(subst /,$$(PSEP),$$@) $$(subst /,$$(PSEP),$$<) -MMD $(CC_ARGS)
 endef
 
-.PHONY: all clean directories test
-
-test: all
-	test.exe
+.PHONY: all clean directories
 
 all: directories $(TARGET)
 
