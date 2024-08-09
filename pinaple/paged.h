@@ -40,4 +40,6 @@ struct Paged * paged_new(
 
 void paged_delete(struct Paged * paged);
 
+struct Paged * paged_getLast(struct Paged * paged);
+
 #endif

@@ -44,7 +44,7 @@ void paged_expand(struct Paged * paged)
     struct Paged * ptr = paged;
 
     // go to last element
-    while (ptr != NULL) {ptr = ptr->next;}
+    ptr = paged_getLast(ptr);
 
     ptr->next = _paged_alloc(ptr->isFull, ptr->isEmpty, ptr->allocate, ptr->deallocate, ptr->reservedSize);
 }
@@ -55,7 +55,7 @@ struct Paged * paged_checkSpace(struct Paged * paged)
     struct Paged * ptr = paged;
 
     // go to last element
-    while (ptr != NULL) {ptr = ptr->next;}
+    ptr = paged_getLast(ptr);
 
     if (ptr->isFull == NULL)
     {
@@ -108,7 +108,7 @@ void paged_delete(struct Paged * paged)
     struct Paged * ptr = paged;
 
     // go to last element
-    while (ptr != NULL) {ptr = ptr->next;}
+    ptr = paged_getLast(ptr);
 
     // remove elements from back to front
     while (ptr != NULL) {
@@ -116,4 +116,16 @@ void paged_delete(struct Paged * paged)
         ptr = ptr->last;
         _paged_delete(tp);
     }
+}
+
+struct Paged * paged_getLast(struct Paged * paged)
+{
+    struct Paged * ptr = paged;
+    struct Paged * nptr = paged;
+    while (nptr != NULL) {
+        ptr = nptr;
+        nptr = nptr->next;
+        }
+
+    return ptr;
 }

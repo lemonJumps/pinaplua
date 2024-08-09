@@ -32,7 +32,7 @@ void END_TEST()
 
 #define TEST(_x, _correct, _incorrect) \
     if (_x) \
-    { printf("\t✔ " _correct "\n"); \
+    { printf("\t✅ " _correct "\n"); \
     sucessCount+=1; \
     } else { printf("\t❌ " _incorrect "\n"); \
     failCount+=1; \
@@ -45,10 +45,19 @@ int main(void)
         setvbuf(stdout, NULL, _IOFBF, 1000);
     #endif
 
+    printf("sanity check:\n");
+
+    TEST(1, "test succeded sucessfully", "test wrongfully failed")
+    TEST(0, "test wrongfully succeded", "test failed sucesfully")
+    sucessCount = 0;
+    failCount = 0;
+    printf("\n\n");
 
     printf("unit-test \n pinaple::storage\n");
 
     {
+        printf("  first element test\n");
+
         const char * test1 = "test string 1";
 
         PStorage * storage = storage_new();
@@ -59,7 +68,22 @@ int main(void)
 
         Storage * s  = ((Storage *)storage->ptr);
         TEST(s != NULL, "storage is allocated", "storage is null")
+        TEST(s->count == 1, "one element is allocated", "wrong number of allocated items")
+        TEST(s->needs_free[0] > 0, "element 0 needs free", "element 0 isn't marked as needs free")
+        TEST(s->size[0] == strlen(test1), "element 0 length is correct", "element 0 length is wrong")
+        TEST(id == 0, "ID is returned as id 0", "ID returned is wrong")
 
+        memcpy(pt, test1, strlen(test1));
+
+
+        printf("  second element test\n");
+
+        id = storage_copyTo(storage, pt, strlen(pt));
+
+        TEST(s->count == 2, "two elements are allocated", "wrong number of allocated items")
+        TEST(s->needs_free[1] > 0, "element 1 needs free", "element 1 isn't marked as needs free")
+        TEST(s->size[1] == strlen(test1), "element 1 length is correct", "element 1 length is wrong")
+        TEST(id == 1, "ID is returned as id 1", "ID returned is wrong")
 
 
         storage_free(storage);

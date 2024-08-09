@@ -93,19 +93,30 @@ size_t storage_copyTo(PStorage * storage, void * data, size_t size)
 
     Storage * stor = ((Storage *)storage->ptr);
 
-    stor->count++;
-    stor->needs_free = 1;
-    stor->size = size;
-    stor->ptr = MALLOC(size);
+    size_t i = stor->count++;
+    stor->needs_free[i] = 1;
+    stor->size[i] = size;
+    stor->ptr[i] = MALLOC(size);
 
-    memcpy(stor->ptr, data, size);
+    memcpy(stor->ptr[i], data, size);
 
-    return stor->count - 1;
+    return i;
 }
 
 void * storage_alloc(PStorage * storage, size_t size, size_t * id)
 {
+    storage = paged_checkSpace(storage);
 
+    Storage * stor = ((Storage *)storage->ptr);
+
+    size_t i = stor->count++;
+    stor->needs_free[i] = 1;
+    stor->size[i] = size;
+    stor->ptr[i] = MALLOC(size);
+
+    *id = i;
+
+    return stor->ptr[i];
 }
 
 void storage_delete(PStorage * storage, size_t id)

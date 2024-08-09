@@ -13,8 +13,8 @@
  */
 #define PINAPLE_VM_STORAGE_DEFAULT 128
 
-#define CALLOC(n, s) calloc(n, s)
-#define MALLOC(s) malloc(s)
-#define FREE(p) free(p)
+#define CALLOC(n, s) calloc(n, s);
+#define MALLOC(s) malloc(s);
+#define FREE(p) free(p);
 
 #endif
