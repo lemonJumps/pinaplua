@@ -7,8 +7,6 @@
 /**
  * @brief sotres paged memory
  * 
- * allocating more pages:
- * 
  * 
  */
 struct Paged

@@ -25,7 +25,7 @@ I mean complex optimizations are definitely possible, ESP when the code can be c
 
 int _storage_isFull(struct Paged * paged)
 {
-    return ((Storage *)paged->ptr)->count == paged->reservedSize;
+    return ((Storage *)paged->ptr)->count >= paged->reservedSize -1;
 }
 
 int _storage_isEmpty(struct Paged * paged)

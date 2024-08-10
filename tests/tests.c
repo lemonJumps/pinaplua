@@ -6,6 +6,18 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+
+#include "windows.h"
+#include "psapi.h"
+
+size_t get_ram_usage()
+{
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+    SIZE_T virtualMemUsedByMe = pmc.PrivateUsage;
+    return virtualMemUsedByMe;
+}
+
 #endif
 
 size_t sucessCount = 0;
@@ -86,7 +98,24 @@ int main(void)
         TEST(id == 1, "ID is returned as id 1", "ID returned is wrong")
 
 
-        storage_free(storage);
+        // allocate lots of ram
+        for (size_t i = 0; i < 5000; i++)
+        {
+            size_t dummy;
+            storage_alloc(storage, 20, dummy);
+        }
+
+        // check if memory is decreased by free
+        {
+            size_t before;
+            size_t after; 
+
+            before = get_ram_usage();
+            storage_free(storage);
+            after = get_ram_usage();
+
+            printf("%i %i\n", before, after);
+        }
     }
 
     END_TEST();

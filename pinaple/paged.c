@@ -72,7 +72,7 @@ struct Paged * paged_checkSpace(struct Paged * paged)
     if (ptr->isFull(ptr) > 0)
     {
         paged_expand(ptr);
-        while (ptr != NULL) {ptr = ptr->next;}
+        ptr = paged_getLast(ptr);
     }
     else if (ptr->isEmpty(ptr) > 0)
     {
