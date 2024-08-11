@@ -8,10 +8,9 @@ from queue import Queue
 import time
 from typing import IO
 
-import tkinter
+from gdbParser import *
 
-
-from tkinter import Tk, Button, Frame
+from tkinter import *
 from tkinter.scrolledtext import ScrolledText
 
 
@@ -71,12 +70,19 @@ class PrintLogger(object):  # create file like object
 
     def __init__(self, textbox, root):  # pass reference to text widget
         self.textbox = textbox  # keep ref
-        self.root = root
+        self.root : Frame = root 
+        self.isWaiting = False
+
+    def defferedWrite(self):
+        self.root.event_generate("<<printEv>>", when="tail", state=123)
+        # time.sleep(0.001)
+        self.isWaiting = False
 
     def write(self, text):
         printQueue.put(text)
-        self.root.event_generate("<<printEv>>", when="tail", state=123)
-        time.sleep(0.001)
+        if(self.isWaiting == False):
+            self.isWaiting = True
+            self.root.after(60, self.defferedWrite)
 
     def flush(self):  # needed for file like object
         pass
@@ -86,15 +92,11 @@ class MainGUI(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.root = Frame(self)
-        self.root.pack()
-        # self.redirect_button = Button(self.root, text="Redirect console to widget", command=self.redirect_logging)
-        # self.redirect_button.pack()
-        # self.redirect_button = Button(self.root, text="Redirect console reset", command=self.reset_logging)
-        # self.redirect_button.pack()
-        # self.test_button = Button(self.root, text="Test Print", command=self.test_print)
-        # self.test_button.pack()
-        self.log_widget = ScrolledText(self.root, height=50, width=140, font=("consolas", "8", "normal"))
-        self.log_widget.pack()
+        self.root.grid(row=0, column=0, sticky=N+E+S+W)
+        self.canvas = Canvas(self.root, width=400, height=400, bg='black')
+        self.canvas.grid(row = 0, column = 1, pady = 2)
+        self.log_widget = ScrolledText(self.root, height=50, width=140, font=("consolas", "8", "normal"), bg='black', fg='white')
+        self.log_widget.grid(row = 0, column = 0, pady = 2, sticky=N+S+W)
 
     def reset_logging(self):
         sys.stdout = sys.__stdout__
@@ -111,12 +113,15 @@ class MainGUI(Tk):
     def eventPrint(self, evt):
         # if printQueue.empty() == False:
         self.log_widget.configure(state="normal")  # make field editable
-        self.log_widget.insert("end", printQueue.get_nowait())  # write text to
+        while printQueue.empty() == False:
+            self.log_widget.insert("end", printQueue.get())  # write text to
         self.log_widget.see("end")  # scroll to end
         self.log_widget.configure(state="disabled")  # make field readonly
         self.update()
 
 def main():
+    parser = Parser()
+
     print("""Automatic memory checker V0.1""");
 
     gdb = procMonger("gdb test.exe")
@@ -129,10 +134,12 @@ def main():
     gdb.write("run main\n")
     print(gdb.waitFor("(gdb)"))
 
-    for i in range(80):
+    for i in range(140):
         gdb.write("step\n")
-        print(gdb.waitFor("(gdb)"))
+        p = gdb.waitFor("(gdb)")
+        parser.parseGDB(p)
 
+        print(parser.file, parser.line, parser.function)
 
 if __name__ == "__main__":
 
