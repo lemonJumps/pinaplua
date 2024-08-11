@@ -9,10 +9,13 @@ import time
 from typing import IO
 
 from gdbParser import *
+from cParser import *
+from memoryValidator import *
 
 from tkinter import *
 from tkinter.scrolledtext import ScrolledText
 
+from pprint import pprint
 
 def enqueue_output(out : IO[bytes], queue : Queue):
     while True:
@@ -66,49 +69,16 @@ class procMonger:
 
 printQueue = Queue()
 
-class PrintLogger(object):  # create file like object
-
-    def __init__(self, textbox, root):  # pass reference to text widget
-        self.textbox = textbox  # keep ref
-        self.root : Frame = root 
-        self.isWaiting = False
-
-    def defferedWrite(self):
-        self.root.event_generate("<<printEv>>", when="tail", state=123)
-        # time.sleep(0.001)
-        self.isWaiting = False
-
-    def write(self, text):
-        printQueue.put(text)
-        if(self.isWaiting == False):
-            self.isWaiting = True
-            self.root.after(60, self.defferedWrite)
-
-    def flush(self):  # needed for file like object
-        pass
-
 class MainGUI(Tk):
 
     def __init__(self):
         Tk.__init__(self)
         self.root = Frame(self)
         self.root.grid(row=0, column=0, sticky=N+E+S+W)
-        self.canvas = Canvas(self.root, width=400, height=400, bg='black')
-        self.canvas.grid(row = 0, column = 1, pady = 2)
-        self.log_widget = ScrolledText(self.root, height=50, width=140, font=("consolas", "8", "normal"), bg='black', fg='white')
-        self.log_widget.grid(row = 0, column = 0, pady = 2, sticky=N+S+W)
-
-    def reset_logging(self):
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-
-    def test_print(self):
-        print("Am i working?")
-
-    def redirect_logging(self):
-        logger = PrintLogger(self.log_widget, self.root)
-        sys.stdout = logger
-        sys.stderr = logger
+        self.stackCanvas = Canvas(self.root, width=400, height=400, bg='black')
+        self.stackCanvas.grid(row = 0, column = 0, pady = 2)
+        self.heapCanvas = Canvas(self.root, width=400, height=400, bg='black')
+        self.heapCanvas.grid(row = 1, column = 0, pady = 2)
 
     def eventPrint(self, evt):
         # if printQueue.empty() == False:
@@ -119,8 +89,10 @@ class MainGUI(Tk):
         self.log_widget.configure(state="disabled")  # make field readonly
         self.update()
 
-def main():
+def main(gui : MainGUI):
     parser = Parser()
+    memVal = memoryValidator(gui.heapCanvas, gui.stackCanvas)
+    cparser = CParser()
 
     print("""Automatic memory checker V0.1""");
 
@@ -132,23 +104,35 @@ def main():
     print(gdb.waitFor("(gdb)"))
 
     gdb.write("run main\n")
-    print(gdb.waitFor("(gdb)"))
+    p = gdb.waitFor("(gdb)")
+    parser.parseGDB(p)
 
-    for i in range(140):
+    for i in range(100):
         gdb.write("step\n")
         p = gdb.waitFor("(gdb)")
         parser.parseGDB(p)
 
+        gdb.write("info registers\n")
+        p = gdb.waitFor("(gdb)")
+        parser.parseReg(p)
+
+        cparser.parseFile(parser.file)
+        print(cparser.dbgHintsByLine[parser.file][int(parser.line)])
+        t : cindex.Token = cparser.tokensByLine[parser.file][int(parser.line)][0] 
+
+        for child in t.cursor.get_arguments():
+            print(child.kind, child.spelling)
+
+        gui.update()
         print(parser.file, parser.line, parser.function)
 
 if __name__ == "__main__":
 
-    execThread = Thread(target=main)
+    app = MainGUI()
+    # app.redirect_logging()
+    execThread = Thread(target=main, args=[app])
 
     execThread.daemon = True
-
-    app = MainGUI()
-    app.redirect_logging()
     execThread.start()
 
     app.bind("<<printEv>>", app.eventPrint)
