@@ -12,10 +12,10 @@ from gdbParser import *
 from cParser import *
 from memoryValidator import *
 
-from tkinter import *
-from tkinter.scrolledtext import ScrolledText
-
 from pprint import pprint
+
+from sdl2 import *
+import ctypes
 
 def enqueue_output(out : IO[bytes], queue : Queue):
     while True:
@@ -69,29 +69,9 @@ class procMonger:
 
 printQueue = Queue()
 
-class MainGUI(Tk):
-
-    def __init__(self):
-        Tk.__init__(self)
-        self.root = Frame(self)
-        self.root.grid(row=0, column=0, sticky=N+E+S+W)
-        self.stackCanvas = Canvas(self.root, width=400, height=400, bg='black')
-        self.stackCanvas.grid(row = 0, column = 0, pady = 2)
-        self.heapCanvas = Canvas(self.root, width=400, height=400, bg='black')
-        self.heapCanvas.grid(row = 1, column = 0, pady = 2)
-
-    def eventPrint(self, evt):
-        # if printQueue.empty() == False:
-        self.log_widget.configure(state="normal")  # make field editable
-        while printQueue.empty() == False:
-            self.log_widget.insert("end", printQueue.get())  # write text to
-        self.log_widget.see("end")  # scroll to end
-        self.log_widget.configure(state="disabled")  # make field readonly
-        self.update()
-
-def main(gui : MainGUI):
+def main(surface):
     parser = Parser()
-    memVal = memoryValidator(gui.heapCanvas, gui.stackCanvas)
+    memVal = memoryValidator()
     cparser = CParser()
 
     print("""Automatic memory checker V0.1""");
@@ -107,7 +87,7 @@ def main(gui : MainGUI):
     p = gdb.waitFor("(gdb)")
     parser.parseGDB(p)
 
-    for i in range(100):
+    for i in range(5):
         gdb.write("step\n")
         p = gdb.waitFor("(gdb)")
         parser.parseGDB(p)
@@ -117,26 +97,38 @@ def main(gui : MainGUI):
         parser.parseReg(p)
 
         cparser.parseFile(parser.file)
-        print(cparser.dbgHintsByLine[parser.file][int(parser.line)])
-        t : cindex.Token = cparser.tokensByLine[parser.file][int(parser.line)][0] 
+        # print(cparser.dbgHintsByLine[parser.file][int(parser.line)])
+        cparser.parseLine(parser.file, parser.line, surface)
 
-        for child in t.cursor.get_arguments():
-            print(child.kind, child.spelling)
-
-        gui.update()
+        # gui.update()
         print(parser.file, parser.line, parser.function)
 
 if __name__ == "__main__":
 
-    app = MainGUI()
     # app.redirect_logging()
-    execThread = Thread(target=main, args=[app])
+
+    SDL_Init(SDL_INIT_VIDEO)
+    window = SDL_CreateWindow(b"Hello World",
+                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                              640, 480, SDL_WINDOW_SHOWN)
+    windowsurface = SDL_GetWindowSurface(window)
+
+    execThread = Thread(target=main, args=[windowsurface])
 
     execThread.daemon = True
     execThread.start()
 
-    app.bind("<<printEv>>", app.eventPrint)
-    app.mainloop()
+    running = True
+    event = SDL_Event()
+    while running:
+        while SDL_PollEvent(ctypes.byref(event)) != 0:
+            if event.type == SDL_QUIT:
+                running = False
+                break
+
+        SDL_UpdateWindowSurface(window)
+
+    #gpu loop
 
 
 

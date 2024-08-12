@@ -50,8 +50,17 @@ void END_TEST()
     failCount+=1; \
     }
 
+int _test(int i, int j)
+{
+    return i + j;
+}
+
 int main(void)
 {
+    volatile int a = _test(
+        _test(1,2), _test(3,4)
+    );
+
     #ifdef _WIN32
         SetConsoleOutputCP(CP_UTF8);
         setvbuf(stdout, NULL, _IOFBF, 1000);

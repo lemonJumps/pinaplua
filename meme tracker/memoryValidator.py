@@ -1,13 +1,13 @@
 from tkinter import Canvas
 
 class memoryValidator():
-    def __init__(self, heapCanvas : Canvas, stackCanvas : Canvas) -> None:
-        self.heapCanvas = heapCanvas
-        self.stackCanvas = stackCanvas
+    def __init__(self) -> None:
 
         self.heapObjects = {}
-
         self.stackObjects = {}
+
+        self.stackAddr = 0
+        self.heapAddr = 0
 
     def setStackBegin(self, address):
         pass
