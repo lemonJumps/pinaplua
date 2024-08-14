@@ -71,7 +71,7 @@ class CLangParser(Parser):
             else:
                 nextState = States.string
 
-        elif char in "`~@!$^*%&<>+=_–|/\;:,.?":
+        elif char in "`~@!$^*%&<>+=_–|/\:,.?":
             if self.state in [States.string, States.preprocessor]:
                 pass
             else:
@@ -95,13 +95,13 @@ class CLangParser(Parser):
             else:
                 nextState = States.text
 
+        ret = []
+
         if nextState != self.state:
-            print("")
-            print(self.state, "->", nextState, ": ", end = "")
+            ret = [[self.state, self.acc, len(self.braceStack)]]
+            self.acc = ""
             self.state = nextState
-            if nextState == States.brace:
-                print(self.braceStack, end = "")
+        
+        self.acc += char
 
-        print(char, end = "")
-
-        return []
+        return ret
