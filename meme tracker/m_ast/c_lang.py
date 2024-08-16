@@ -9,9 +9,25 @@ class States(enum.Enum):
     brace = 4
     operator = 5 
     special = 6
-    end = 6
+    end = 7
 
     preprocessor = 7    
+
+class ASTTypes(enum.Enum):
+    expression = 0 # can be any expr
+    body = 1 # either function or struct
+    type = 2 # typedef
+    intType = 3
+    function = 4
+    variable = 5
+    declaration = 6
+    itemName = 7
+    qualifier = 8
+
+class StackNode:
+    def __init__(self) -> None:
+        self.parent = None
+        self.stack = {}
 
 class CLangParser(Parser):
     def __init__(self) -> None:
@@ -22,13 +38,57 @@ class CLangParser(Parser):
         self.state = States.idle
         self.acc = ""
 
+        self.types = {}
+        self.definitions = {}
+
+        #current node variables
+        self.parent = None
+        self.nodeStackRoots = []
+        self.currentStackNode = None
+
     def tokenToNode(self, i, token) -> ASTnode:
+
+        tokenType = token[0]
+        tokenText = token[1]
+        braceDepth = token[2]
+
+        if self.currentStackNode == None:
+            self.currentStackNode = StackNode()
+            self.nodeStackRoots.append(self.currentStackNode)
+
+        # distinguish keyword from text
+        if tokenType == States.text:
+                # is keyword
+
+            # qualifier keyword
+            if tokenText in ["const", "volatile", "restrict"]:
+                self.currentStackNode.stack[ASTnode(ASTTypes.qualifier, tokenText)] = []
+                pass
+
+            # built in types
+            elif tokenText in ["void", "short", "long", "int", "char", "signed", "unsigned", "size_t", "float", "double"]:
+                self.currentStackNode.stack[ASTnode(ASTTypes.intType, tokenText)] = []
+                pass
+
+            elif tokenText == "struct":
+                self.currentStackNode.stack[ASTnode(ASTTypes.type, tokenText)] = []
+                pass
+
+            else:
+                # is name
+                self.currentStackNode.stack[ASTnode(ASTTypes.itemName, tokenText)] = []
+                pass
+
+        elif tokenType == States.end:
+            # statement has ended, assemble the stack
+            pass
         line = i
         priority = 60
         return [line, priority, ASTnode()]
 
     def accumulateToken(self, char) -> list:
 
+        braceDepth = len(self.braceStack)
         nextState = self.state
 
         if char == "#":
@@ -98,10 +158,34 @@ class CLangParser(Parser):
         ret = []
 
         if nextState != self.state:
-            ret = [[self.state, self.acc, len(self.braceStack)]]
+            ret = [[self.state, self.acc, braceDepth]]
             self.acc = ""
             self.state = nextState
         
         self.acc += char
 
         return ret
+    
+
+            # funcrion:
+        # <qulifiers> [type + *] [name] (param) {body}
+        # 
+        # function call:
+        # [name] (param) ;
+        #
+        # variable:
+        # <qulifiers> [type + *] [name] <=> <value> ;
+        #
+        # variable use (expression):
+        # [name] <=> <value> ;
+        # 
+        # in order:
+        # <qulifiers> [type + *] [name] (param) {body}
+        # 
+        # [name]
+        # <qualifiers> [type + *] 
+        #
+        #
+        #
+        #
+        #

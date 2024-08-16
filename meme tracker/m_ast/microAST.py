@@ -2,10 +2,11 @@
 from pathlib import Path
 
 class ASTnode:
-    def __init__(self) -> None:
-        self.operands = []
-        self.operator = None
-        self.kind = "default"
+    def __init__(self, text = None, kind = None) -> None:
+        self.children = []
+        self.parent = None
+        self.text = text
+        self.kind = kind
 
 class Parser:
     def __init__(self) -> None:

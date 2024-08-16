@@ -12,6 +12,11 @@ if __name__ == "__main__":
         if i[0] != States.idle:
             print(i)
 
+    print("--- ---")
+
+    for i in parser.nodeStackRoots:
+        print(i.stack)
+
     # print(parser.tokens)
     # print(parser.roots)
     
