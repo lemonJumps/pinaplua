@@ -8,14 +8,15 @@ if __name__ == "__main__":
 
     parser.parseFile(ROOT / "ast_test.h")
 
-    for i in parser.tokens:
-        if i[0] != States.idle:
-            print(i)
+    # for i in parser.tokens:
+    #     if i[0] != States.idle:
+    #         print(i)
 
-    print("--- ---")
+    # print("--- ---")
 
-    for i in parser.nodeStackRoots:
-        print(i.stack)
+    # for i in parser.nodeStackRoots:
+    #     for item in i.stack:
+    #         print("\t", item.kind, "\t", item.text)
 
     # print(parser.tokens)
     # print(parser.roots)

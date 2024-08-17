@@ -13,7 +13,7 @@ class States(enum.Enum):
 
     preprocessor = 7    
 
-class ASTTypes(enum.Enum):
+class ASTtypes(enum.Enum):
     expression = 0 # can be any expr
     body = 1 # either function or struct
     type = 2 # typedef
@@ -23,6 +23,40 @@ class ASTTypes(enum.Enum):
     declaration = 6
     itemName = 7
     qualifier = 8
+
+
+
+    # funcrion:
+    # <qulifiers> [type + *] [name] (param) {body}
+    # 
+    # function call:
+    # [name] (param) ;
+    #
+    # variable:
+    # <qulifiers> [type + *] [name] <=> <value> ;
+    #
+    # variable use (expression):
+    # [name] <=> <value> ;
+    # 
+    # in order:
+    # <qulifiers> [type + *] [name] (param) {body}
+    # 
+    # [name]
+    # <qualifiers> [type + *] 
+    #
+    #
+    #
+    #
+    #
+
+class ASTstate(enum.Enum):
+    idle = 0
+    qual_1 = 1
+    type_2 = 2
+    name_3 = 3
+    param_4 = 4
+    body_5 = 5
+    end_6 = 6
 
 class StackNode:
     def __init__(self) -> None:
@@ -42,9 +76,10 @@ class CLangParser(Parser):
         self.definitions = {}
 
         #current node variables
-        self.parent = None
-        self.nodeStackRoots = []
-        self.currentStackNode = None
+        # self.parent = None
+        # self.nodeStackRoots = []
+        # self.currentStackNode = None
+        self.ASTstate = ASTstate.idle
 
     def tokenToNode(self, i, token) -> ASTnode:
 
@@ -52,9 +87,6 @@ class CLangParser(Parser):
         tokenText = token[1]
         braceDepth = token[2]
 
-        if self.currentStackNode == None:
-            self.currentStackNode = StackNode()
-            self.nodeStackRoots.append(self.currentStackNode)
 
         # distinguish keyword from text
         if tokenType == States.text:
@@ -62,29 +94,53 @@ class CLangParser(Parser):
 
             # qualifier keyword
             if tokenText in ["const", "volatile", "restrict"]:
-                self.currentStackNode.stack[ASTnode(ASTTypes.qualifier, tokenText)] = []
-                pass
+                if self.ASTstate in [ASTstate.idle, ASTstate.qual_1]:
+                    self.ASTstate = ASTstate.qual_1
+                else:
+                    print("unexpected qualifier")
 
             # built in types
-            elif tokenText in ["void", "short", "long", "int", "char", "signed", "unsigned", "size_t", "float", "double"]:
-                self.currentStackNode.stack[ASTnode(ASTTypes.intType, tokenText)] = []
-                pass
-
-            elif tokenText == "struct":
-                self.currentStackNode.stack[ASTnode(ASTTypes.type, tokenText)] = []
-                pass
+            elif tokenText in ["struct", "void", "short", "long", "int", "char", "signed", "unsigned", "size_t", "float", "double"]:
+                if self.ASTstate in [ASTstate.idle, ASTstate.qual_1, ASTstate.type_2]:
+                    self.ASTstate = ASTstate.type_2
+                else:
+                    print("unexpected type")
 
             else:
+                if self.ASTstate in [ASTstate.idle, ASTstate.type_2]:
+                    self.ASTstate = ASTstate.name_3
+                else:
+                    print("unexpected name")
                 # is name
-                self.currentStackNode.stack[ASTnode(ASTTypes.itemName, tokenText)] = []
                 pass
+
+        elif tokenType == States.brace:
+            if tokenText == ")":
+                pass
+            elif tokenText == "]":
+                pass
+            elif tokenText == "}":
+                pass 
+
+            elif tokenText == "(":
+                pass             
+            elif tokenText == "[":
+                pass
+            elif tokenText == "{":
+                pass 
 
         elif tokenType == States.end:
             # statement has ended, assemble the stack
             pass
+
+        print(self.ASTstate, "\t", tokenText)
+
         line = i
         priority = 60
         return [line, priority, ASTnode()]
+
+
+
 
     def accumulateToken(self, char) -> list:
 
@@ -167,7 +223,7 @@ class CLangParser(Parser):
         return ret
     
 
-            # funcrion:
+        # funcrion:
         # <qulifiers> [type + *] [name] (param) {body}
         # 
         # function call:
