@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int fnA(int i) {return i;}
+const int fnA(int i) {return i;}
 int fnB(int i) {return i;}
 int fnC() {return 3;}
 

@@ -8,7 +8,6 @@ if __name__ == "__main__":
 
     parser.parseFile(ROOT / "ast_test.h")
 
-    print("--- tokens ---")
 
     # for i in parser.tokens:
     #     if i[0] != States.idle:
