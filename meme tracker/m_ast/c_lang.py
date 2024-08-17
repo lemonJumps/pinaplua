@@ -50,7 +50,9 @@ class ASTtypes(enum.Enum):
     #
 
 class ASTstate(enum.Enum):
-    idle = 0
+    idle        = 0
+
+
 
 class StackNode:
     def __init__(self) -> None:
@@ -73,6 +75,10 @@ class CLangParser(Parser):
         self.ASTstate = ASTstate.idle
         self.ASTdepth = 0
 
+        self.currentAST = None
+        self.ASTstack = []
+        self.texts = []
+
     def tokenToNode(self, i, token) -> ASTnode:
 
         tokenType = token[0]
@@ -82,13 +88,24 @@ class CLangParser(Parser):
         if tokenType == States.idle:
             return None
 
+        
+        if tokenType == States.text:
+            self.texts.append(tokenText)
+
         if braceDepth > self.ASTdepth:
+            self.ASTstack.append(self.currentAST)
             self.ASTstateStack.append(self.ASTstate)
             self.ASTdepth = braceDepth
+            
+
+            if tokenText == "(":
+            
+
         elif braceDepth < self.ASTdepth:
             # on pop save to current ast node IG lol
-
+            self.currentAST = self.ASTstack.pop()
             self.ASTstateStack.pop()
+            
             self.ASTdepth = braceDepth
         else:
             pass

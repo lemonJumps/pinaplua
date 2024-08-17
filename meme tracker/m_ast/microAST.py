@@ -2,9 +2,10 @@
 from pathlib import Path
 
 class ASTnode:
-    def __init__(self, text = None, kind = None) -> None:
+    def __init__(self, text = None, kind = None, nodeType = None) -> None:
         self.children = []
         self.parent = None
+        self.type = nodeType
         self.text = text
         self.kind = kind
 
