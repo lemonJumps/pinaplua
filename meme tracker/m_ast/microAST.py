@@ -36,4 +36,6 @@ class Parser:
             self.tokens += self.accumulateToken(c)
 
         for i, t in enumerate(self.tokens):
-            l, p, node = self.tokenToNode(i, t)
+            r = self.tokenToNode(i, t)
+            if r == None: continue
+            l, p, node = r

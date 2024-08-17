@@ -11,7 +11,7 @@ class States(enum.Enum):
     special = 6
     end = 7
 
-    preprocessor = 7    
+    preprocessor = 8
 
 class ASTtypes(enum.Enum):
     expression = 0 # can be any expr
@@ -58,6 +58,13 @@ class ASTstate(enum.Enum):
     body_5 = 5
     end_6 = 6
 
+class ASTsubState(enum.Enum):
+    idle = 0,
+    function = 1,
+    array = 2,
+    scope = 3
+    
+
 class StackNode:
     def __init__(self) -> None:
         self.parent = None
@@ -79,7 +86,12 @@ class CLangParser(Parser):
         # self.parent = None
         # self.nodeStackRoots = []
         # self.currentStackNode = None
+
+        self.ASTstateStack = []
+        self.ASTsubStateStack = []
+
         self.ASTstate = ASTstate.idle
+        self.ASTsubState = ASTsubState.idle
 
     def tokenToNode(self, i, token) -> ASTnode:
 
@@ -87,6 +99,10 @@ class CLangParser(Parser):
         tokenText = token[1]
         braceDepth = token[2]
 
+        currentState = self.ASTstate
+
+        if tokenType == States.idle:
+            return None
 
         # distinguish keyword from text
         if tokenType == States.text:
@@ -115,25 +131,72 @@ class CLangParser(Parser):
                 pass
 
         elif tokenType == States.brace:
-            if tokenText == ")":
+            if tokenText == "(":
+                if self.ASTstate == ASTstate.name_3:
+                    # could be function call
+                    # function definition
+                    self.ASTsubState = ASTsubState.function
+                    self.ASTstate = ASTstate.param_4
+
+                    # store state on stack and retrieve once all parameters are read out
+                    self.ASTstateStack.append(self.ASTstate)
+                    self.ASTstate = ASTstate.idle
+
+                    pass             
+            elif tokenText == "[":
+                if self.ASTstate == ASTstate.name_3:
+                    # could be a array operator
+                    # or array definition
+                    self.ASTsubState = ASTsubState.array
+                    self.ASTstate = ASTstate.param_4
+                    pass
+            elif tokenText == "{":
+                if self.ASTstate == ASTstate.idle:
+                    # scope resolution
+                    self.ASTsubState = ASTsubState.scope
+                    pass
+                elif self.ASTstate == ASTstate.param_4 and \
+                    self.ASTsubState == ASTsubState.function:
+                    # function body
+                    self.ASTstate = ASTstate.body_5
+                    self.ASTstateStack.append(self.ASTstate)
+                    self.ASTstate = ASTstate.idle
+
+                    pass 
+            elif tokenText == ")":
+                if self.ASTsubState == ASTsubState.function:
+                    # function parameters read out, switch back to parent stack
+                    self.ASTstate = self.ASTstateStack.pop()
+
                 pass
             elif tokenText == "]":
                 pass
             elif tokenText == "}":
+                if self.ASTsubState == ASTsubState.function:
+                    # function body is read out, switch back to parent stack
+                    # and close the function
+                    self.ASTstate = self.ASTstateStack.pop()
+                    if self.ASTstate == ASTstate.body_5:
+                        # function definition termintation
+                        self.ASTstate = ASTstate.idle
                 pass 
 
-            elif tokenText == "(":
-                pass             
-            elif tokenText == "[":
-                pass
-            elif tokenText == "{":
-                pass 
+        elif tokenType == States.special:
+            if tokenText == ",":
+                if self.ASTsubState == ASTsubState.function:
+                    
+                    # function parameter
+                    self.ASTstate = ASTstate.idle
+                    
 
         elif tokenType == States.end:
             # statement has ended, assemble the stack
+            if self.ASTsubState == ASTsubState.function:
+                # function call termination
+                self.ASTstate = ASTstate.idle
             pass
 
-        print(self.ASTstate, "\t", tokenText)
+        print(currentState, "\t", self.ASTsubState, "\t", tokenText)
 
         line = i
         priority = 60
@@ -143,6 +206,8 @@ class CLangParser(Parser):
 
 
     def accumulateToken(self, char) -> list:
+
+        updateToken = False
 
         braceDepth = len(self.braceStack)
         nextState = self.state
@@ -173,6 +238,7 @@ class CLangParser(Parser):
             else:
                 self.braceStack.append(char)
                 nextState = States.brace
+                updateToken = True # token can only be 1 character
         
         elif char in ")}]":
             if self.state in [States.string, States.preprocessor]:
@@ -180,6 +246,7 @@ class CLangParser(Parser):
             else:
                 brace = self.braceStack.pop()
                 nextState = States.brace
+                updateToken = True # token can only be 1 character
 
         elif char in "\"\'":
             if self.state in [States.string, States.preprocessor]:
@@ -213,7 +280,7 @@ class CLangParser(Parser):
 
         ret = []
 
-        if nextState != self.state:
+        if nextState != self.state or updateToken == True:
             ret = [[self.state, self.acc, braceDepth]]
             self.acc = ""
             self.state = nextState

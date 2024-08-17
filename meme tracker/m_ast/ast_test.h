@@ -10,6 +10,8 @@ int main (void)
     const char * hi = "Hello World 😈🐱‍💻";
     printf(hi);
 
+    int array[20] = {123,456};
+
     int i = 10; int j = 20; int k = 25;
 
     int l = i + j * k;
