@@ -26,7 +26,7 @@ int main (void)
         int bone = 25;
     }
 
-    int l = i + j * k;
+    int l = i + j * k / l % j;
 
     i *= 78;
 

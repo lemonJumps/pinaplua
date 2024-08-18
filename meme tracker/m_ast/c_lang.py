@@ -106,7 +106,7 @@ class CLangParser(Parser):
                         node = ASTnode(kind = kind)
                         self.rootNode.children.append(node)
                         while self.orphanedASTnodes[kind]:
-                            node.children.append(self.orphanedASTnodes[kind].pop(0))
+                            node.children.append(self.orphanedASTnodes[kind].pop(-1))
 
                 else:
                     kind = "any"
@@ -124,7 +124,19 @@ class CLangParser(Parser):
                     if kind not in self.orphanedASTnodes:
                         self.orphanedASTnodes[kind] = []
                     self.orphanedASTnodes[kind].append(ASTnode(cn.texts[-1], "_", cn.texts[0:-1]))
+            elif len(cn.texts) == 1:
+                parentKind = "any"
+                kind = "_"
+
+                if tokenType == States.special and tokenText in "=*+-/%":
+                    kind = "operator"
             
+                if self.nodeStack[-1].hasArguments == True and self.nodeStack[-1].hasBody == True:
+                    parentKind = "body"
+
+                if parentKind not in self.orphanedASTnodes:
+                    self.orphanedASTnodes[parentKind] = []
+                self.orphanedASTnodes[parentKind].append(ASTnode(cn.texts[-1], kind, cn.texts[0:-1]))
 
         if self.currentNode == None:
             self.currentNode = LangNode(braceDepth, i)
@@ -167,6 +179,13 @@ class CLangParser(Parser):
 
         # occurs in the middle of function arguments
         if tokenType == States.special and tokenText == ",":
+            endOfNode()
+            self.currentNode = LangNode(braceDepth, i)
+
+        if tokenType == States.special and tokenText in "=*+-/%":
+            endOfNode()
+            self.currentNode = LangNode(braceDepth, i)
+            self.currentNode.texts.append(tokenText)
             endOfNode()
             self.currentNode = LangNode(braceDepth, i)
 
