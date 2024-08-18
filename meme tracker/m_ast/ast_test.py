@@ -14,9 +14,9 @@ if __name__ == "__main__":
     #     item = stack.pop()
     #     print(item)
 
-    for i in parser.tokens:
-        if i[0] != States.idle:
-            print(i)
+    # for i in parser.tokens:
+    #     if i[0] != States.idle:
+    #         print(i)
 
     # print("--- ---")
 

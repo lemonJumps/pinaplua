@@ -83,7 +83,7 @@ class CLangParser(Parser):
         self.nodeStack = []
 
         self.rootNode = None
-        self.orphanedASTnodes = []
+        self.orphanedASTnodes = {}
 
         self.ASTdepth = 0
 
@@ -99,18 +99,37 @@ class CLangParser(Parser):
         def endOfNode():
             cn = self.currentNode
             if len(cn.texts) > 1:
-            
                 if self.ASTdepth == 0:
                     self.rootNode = ASTnode(cn.texts[-1], "dunno", cn.texts[0:-1])
-                else:                
-                    self.orphanedASTnodes.append(ASTnode(cn.texts[-1], "dunno", cn.texts[0:-1]))
+
+                    for kind in self.orphanedASTnodes:
+                        node = ASTnode(kind = kind)
+                        self.rootNode.children.append(node)
+                        while self.orphanedASTnodes[kind]:
+                            node.children.append(self.orphanedASTnodes[kind].pop(0))
+
+                else:
+                    kind = "any"
+
+                    if self.nodeStack:
+                        if self.nodeStack[-1].hasArguments == True and self.nodeStack[-1].hasBody == False:
+                            kind = "arguments"
+                        elif self.nodeStack[-1].hasArguments == True and self.nodeStack[-1].hasBody == True:
+                            kind = "body"
+                        # print("node", self.nodeStack[-1].hasArguments, self.nodeStack[-1].hasBody)
+                    else:
+                        pass
+                        # print("noNode")
+
+                    if kind not in self.orphanedASTnodes:
+                        self.orphanedASTnodes[kind] = []
+                    self.orphanedASTnodes[kind].append(ASTnode(cn.texts[-1], "_", cn.texts[0:-1]))
             
 
         if self.currentNode == None:
             self.currentNode = LangNode(braceDepth, i)
 
         if braceDepth > self.ASTdepth:
-            hasArguments = self.currentNode.hasArguments
             self.nodeStack.append(self.currentNode)
             self.currentNode = LangNode(braceDepth, i)
             self.ASTdepth = braceDepth
@@ -118,20 +137,18 @@ class CLangParser(Parser):
         if tokenType == States.text:
             self.currentNode.texts.append(tokenText)
 
+        if tokenText == "(":
+            self.currentNode.hasArguments = True
 
-        elif braceDepth < self.ASTdepth:
-            # TODO close lang node and make an AST node out of it
+        if tokenText == "{":
+            self.currentNode.hasBody = True
 
+
+        if braceDepth < self.ASTdepth:
             endOfNode()
 
             self.currentNode = self.nodeStack.pop()
             self.ASTdepth = braceDepth
-
-        if tokenText == ")":
-            self.currentNode.hasArguments = True
-            
-        if tokenText == "}":
-            self.currentNode.hasBody = True
 
         print("\t" * braceDepth, self.currentNode)
 

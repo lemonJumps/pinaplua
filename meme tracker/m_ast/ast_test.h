@@ -22,6 +22,10 @@ int main (void)
 
     int i = 10; int j = 20; int k = 25;
 
+    {
+        int bone = 25;
+    }
+
     int l = i + j * k;
 
     i *= 78;

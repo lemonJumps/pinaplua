@@ -9,9 +9,21 @@ class ASTnode:
         self.type = varType
         self.name = name
         self.kind = kind
+        self.depth = 0
 
     def __str__(self) -> str:
-        return "[name: {}, type: {}, kind {}]".format(self.name, self.type, self.kind)
+        cb = ""
+
+        depth = [1] * len(self.children)
+        stack = self.children.copy()
+        while stack:
+            d = depth.pop()
+            item = stack.pop()
+            cb += "\n" + "\t" * d + "[name: {}, type: {}, kind: {}]".format(item.name, item.type, item.kind)
+            depth.extend([d+1] * len(item.children))
+            stack.extend(item.children.copy())
+
+        return "[name: {}, type: {}, kind: {}]{}".format(self.name, self.type, self.kind, cb)
 
 class Parser:
     def __init__(self) -> None:
