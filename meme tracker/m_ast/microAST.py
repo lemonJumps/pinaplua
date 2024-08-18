@@ -1,13 +1,17 @@
 
 from pathlib import Path
+import colorama
 
 class ASTnode:
-    def __init__(self, text = None, kind = None, nodeType = None) -> None:
+    def __init__(self, name = None, kind = None, varType = None) -> None:
         self.children = []
         self.parent = None
-        self.type = nodeType
-        self.text = text
+        self.type = varType
+        self.name = name
         self.kind = kind
+
+    def __str__(self) -> str:
+        return "[name: {}, type: {}, kind {}]".format(self.name, self.type, self.kind)
 
 class Parser:
     def __init__(self) -> None:
@@ -18,7 +22,9 @@ class Parser:
         self.tokens = []
         self.file = None
 
-    def tokenToNode(self, i, token) -> ASTnode:
+        colorama.init()
+
+    def parseTokens(self, i, tokens) -> ASTnode:
         line = i
         priority = 60
         return [line, priority, ASTnode()]
@@ -39,4 +45,6 @@ class Parser:
         for i, t in enumerate(self.tokens):
             r = self.tokenToNode(i, t)
             if r == None: continue
-            l, p, node = r
+            print(colorama.Fore.GREEN)
+            print(r)
+            print(colorama.Fore.RESET)

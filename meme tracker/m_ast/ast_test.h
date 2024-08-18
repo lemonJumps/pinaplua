@@ -1,9 +1,17 @@
 #include <string.h>
 #include <stdio.h>
 
+
+void multiFunc(char a, int b, double c)
+{
+    volatile int a = 0;
+}
+
 const int fnA(int i) {return i;}
 int fnB(int i) {return i;}
 int fnC() {return 3;}
+
+void fnD() {}
 
 int main (void)
 {

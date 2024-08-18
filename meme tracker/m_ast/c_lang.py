@@ -53,11 +53,19 @@ class ASTstate(enum.Enum):
     idle        = 0
 
 
+class LangNode():
+    def __init__(self, depth, line) -> None:
+        self.depth = depth
+        self.line = line
+        self.texts = []
+        self.hasType = False
+        self.hasName = False
+        self.hasArguments = False
+        self.hasBody = False
+        self.inArguments = False
 
-class StackNode:
-    def __init__(self) -> None:
-        self.parent = None
-        self.stack = {}
+    def __str__(self) -> str:
+        return "Node {} at line {}, depth {}".format(self.texts, self.line, self.depth)
 
 class CLangParser(Parser):
     def __init__(self) -> None:
@@ -71,15 +79,15 @@ class CLangParser(Parser):
         self.types = {}
         self.definitions = {}
 
-        self.ASTstateStack = []
-        self.ASTstate = ASTstate.idle
+        self.currentNode = None
+        self.nodeStack = []
+
+        self.rootNode = None
+        self.orphanedASTnodes = []
+
         self.ASTdepth = 0
 
-        self.currentAST = None
-        self.ASTstack = []
-        self.texts = []
-
-    def tokenToNode(self, i, token) -> ASTnode:
+    def tokenToNode(self, i, token):
 
         tokenType = token[0]
         tokenText = token[1]
@@ -88,30 +96,67 @@ class CLangParser(Parser):
         if tokenType == States.idle:
             return None
 
-        
-        if tokenType == States.text:
-            self.texts.append(tokenText)
+        def endOfNode():
+            cn = self.currentNode
+            if len(cn.texts) > 1:
+            
+                if self.ASTdepth == 0:
+                    self.rootNode = ASTnode(cn.texts[-1], "dunno", cn.texts[0:-1])
+                else:                
+                    self.orphanedASTnodes.append(ASTnode(cn.texts[-1], "dunno", cn.texts[0:-1]))
+            
+
+        if self.currentNode == None:
+            self.currentNode = LangNode(braceDepth, i)
 
         if braceDepth > self.ASTdepth:
-            self.ASTstack.append(self.currentAST)
-            self.ASTstateStack.append(self.ASTstate)
+            hasArguments = self.currentNode.hasArguments
+            self.nodeStack.append(self.currentNode)
+            self.currentNode = LangNode(braceDepth, i)
             self.ASTdepth = braceDepth
-            
 
-            if tokenText == "(":
-            
+        if tokenType == States.text:
+            self.currentNode.texts.append(tokenText)
+
 
         elif braceDepth < self.ASTdepth:
-            # on pop save to current ast node IG lol
-            self.currentAST = self.ASTstack.pop()
-            self.ASTstateStack.pop()
-            
-            self.ASTdepth = braceDepth
-        else:
-            pass
+            # TODO close lang node and make an AST node out of it
 
-        print("\t" * braceDepth, tokenType, tokenText)
-        # print(self.ASTstateStack)
+            endOfNode()
+
+            self.currentNode = self.nodeStack.pop()
+            self.ASTdepth = braceDepth
+
+        if tokenText == ")":
+            self.currentNode.hasArguments = True
+            
+        if tokenText == "}":
+            self.currentNode.hasBody = True
+
+        print("\t" * braceDepth, self.currentNode)
+
+        if tokenType == States.end:
+            endOfNode()
+            self.currentNode = LangNode(braceDepth, i)
+
+        # occurs at the end of function declaration
+        if tokenType == States.brace and tokenText == "}" and \
+        len(self.currentNode.texts) > 1 and \
+        self.currentNode.hasArguments == True and \
+        self.currentNode.hasBody == True:
+            
+            endOfNode()
+            self.currentNode = LangNode(braceDepth, i)
+
+        # occurs in the middle of function arguments
+        if tokenType == States.special and tokenText == ",":
+            endOfNode()
+            self.currentNode = LangNode(braceDepth, i)
+
+        if self.rootNode != None:
+            rn = self.rootNode
+            self.rootNode = None
+            return rn
 
         return None
 
@@ -194,6 +239,8 @@ class CLangParser(Parser):
         ret = []
 
         if nextState != self.state or updateToken == True:
+            if self.acc in "({[":
+                braceDepth = braceDepth -1    
             ret = [[self.state, self.acc, braceDepth]]
             self.acc = ""
             self.state = nextState
@@ -202,26 +249,3 @@ class CLangParser(Parser):
 
         return ret
     
-
-        # funcrion:
-        # <qulifiers> [type + *] [name] (param) {body}
-        # 
-        # function call:
-        # [name] (param) ;
-        #
-        # variable:
-        # <qulifiers> [type + *] [name] <=> <value> ;
-        #
-        # variable use (expression):
-        # [name] <=> <value> ;
-        # 
-        # in order:
-        # <qulifiers> [type + *] [name] (param) {body}
-        # 
-        # [name]
-        # <qualifiers> [type + *] 
-        #
-        #
-        #
-        #
-        #
