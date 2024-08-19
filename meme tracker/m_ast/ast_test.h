@@ -2,6 +2,14 @@
 #include <stdio.h>
 
 
+// hello world \
+hi hello!
+
+/*
+yolo 12
+32
+*/
+
 void multiFunc(char a, int b, double c)
 {
     volatile int a = 0;

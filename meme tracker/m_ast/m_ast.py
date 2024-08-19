@@ -97,6 +97,60 @@ class MicroAST:
 
         self.keywords = contents["keywords"]
 
+    def parseFile(self, file, encoding = "utf-8"):
+        # step 0 - load file
+        with pathlib.Path(file).open(encoding=encoding) as f:
+            contents = f.read()
+
+        # step 1 - fix source
+
+        # fix new lines so we don't have to deal with all of them
+        contents = contents.replace("\n\r", "\n")
+        contents = contents.replace("\r\n", "\n")
+        contents = contents.replace("\r", "\n")
+
+        lineRemap = [] # keeps new indexes of lines
+
+        # remove line continuation
+        if "lineCountinuation" in self.langSpec:
+            l = self.langSpec["lineCountinuation"]
+
+            remaps = []
+            f = 0
+            while True:
+                f = contents.find(l + "\n", f+1)
+                if f == -1: break
+                remaps.append(contents.count("\n", 0, f)+1)
+
+            decrease = 0
+            for i in range(contents.count("\n")):
+                if i in remaps:
+                    decrease += 1
+                lineRemap.append(i+1 - decrease)
+
+            contents = contents.replace(l + "\n", " " * (1 + len(l)))
+
+
+            # contents = contents.replace(l + "\n", " " * (1 + len(l)))
+            # contents = contents.replace(l + "\r", " " * (1 + len(l)))
+            # contents = contents.replace(l + "\n\r", " " * (2 + len(l)))
+            # contents = contents.replace(l + "\r\n", " " * (2 + len(l)))
+
+        print(lineRemap)
+
+        # print("contents:")
+        # print(contents)
+
+        # step 2 - parse file to get nodes
+
+        # step 3 - order nodes by line priority and contents
+
+        # step 4 - process brace nodes
+
+        # step 5 - run all the other nodes
+
+        # return nodes
+
 if __name__ == "__main__":
     m = MicroAST("c_tokens.json")
 
@@ -118,3 +172,5 @@ if __name__ == "__main__":
         for item in tokens:
             print("\t", item)
     print("keywords:",m.keywords)
+
+    m.parseFile(ROOT / "ast_test.h")
