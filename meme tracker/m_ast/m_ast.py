@@ -47,6 +47,9 @@ class MicroAST:
 
         self.langSpec = contents["langSpec"]
         self.tokens = {}
+        self.tokensByName = {}
+        self.tokensByLength = {}
+
         for id, tokens in contents["tokens"].items():
             self.tokens[int(id)] = []
             for token in tokens:
@@ -74,6 +77,12 @@ class MicroAST:
                             tk.association = item[7:]
 
                     self.tokens[int(id)].append(tk)
+                    self.tokensByName[tk.name].append(tk)
+
+        for token in self.tokensByLength:
+            if len(token) not in self.tokensByLength:
+                self.tokensByLength = []
+            self.tokensByLength[len(token)] = token
 
         for id, param in contents["tokenGroupParams"].items():
             for token in self.tokens[int(id)]:
@@ -93,7 +102,6 @@ class MicroAST:
                         tk.closingBrace = item[7:]
                     elif item[0:5] == "assoc":
                         tk.association = item[7:]
-
 
         self.keywords = contents["keywords"]
 
@@ -136,7 +144,7 @@ class MicroAST:
             # contents = contents.replace(l + "\n\r", " " * (2 + len(l)))
             # contents = contents.replace(l + "\r\n", " " * (2 + len(l)))
 
-        print(lineRemap)
+        # print(lineRemap)
 
         # print("contents:")
         # print(contents)
