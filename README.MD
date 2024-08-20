@@ -29,6 +29,7 @@ But the two main advantages are, that the VM literally only calls functions, and
 And that I can literally use any language I please, as long as I write lexer for it.
 
 ## currently planned features:
+- [x] memory tracker
 - [ ] pinapple VM
 - [ ] pinaplua style tokenizer
 - [ ] standalone interpreter
@@ -108,3 +109,9 @@ And that I can literally use any language I please, as long as I write lexer for
     When used on bare metal, It's slightly different, here the vm needs to handle *hardware faults*.
     I'd imagine that on different ARM cpus it's going to be relatively easy to handle hard faults.
     But any hardware faults have to be implemented on case to case bases, as theres no unified architecture to those.
+
+- What's Meme tracker?</br>
+    It's a memory debugger capable of hand holding and testing memory access.
+    If possible It should say exactly why memory was corrupted, and show the entire path that caused that corruption.
+
+    Meme tracker is a separate software meant to be used for debugging of the pinaple vm, but there are no restrictions on where it can be used, as long as sourcecode is accessible and the app has debug simbols :P
