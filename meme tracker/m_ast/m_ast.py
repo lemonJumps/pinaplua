@@ -18,6 +18,8 @@ class Token:
     # skips creating node, gives consumed nodes to the parent node
     separator = False
 
+    string = False
+
     def __init__(self, text, priority) -> None:
         self.priority = priority
         self.text = text
@@ -91,6 +93,9 @@ class MicroAST:
                             tk.closingBrace = item[7:]
                         elif item[0:5] == "assoc":
                             tk.association = item[7:]
+                        elif item[0:6] == "string":
+                            tk.string = True
+                            tk.closingBrace = item[7:]
 
                 self.tokens[int(id)].append(tk)
                 self.tokensByName[tk.text] = tk
@@ -120,6 +125,9 @@ class MicroAST:
                         tk.closingBrace = item[7:]
                     elif item[0:5] == "assoc":
                         tk.association = item[7:]
+                    elif item[0:6] == "string":
+                        tk.string = True
+                        tk.closingBrace = item[7:]
 
         self.keywords = contents["keywords"]
 
@@ -157,16 +165,6 @@ class MicroAST:
             contents = contents.replace(l + "\n", " " * (1 + len(l)))
 
 
-            # contents = contents.replace(l + "\n", " " * (1 + len(l)))
-            # contents = contents.replace(l + "\r", " " * (1 + len(l)))
-            # contents = contents.replace(l + "\n\r", " " * (2 + len(l)))
-            # contents = contents.replace(l + "\r\n", " " * (2 + len(l)))
-
-        # print(lineRemap)
-
-        # print("contents:")
-        # print(contents)
-
         # step 2 - parse file to get nodes
 
         nodes = []
@@ -175,6 +173,7 @@ class MicroAST:
         l = len(contents)
         acc = ""
         while i < l:
+            # end data with whitespace
             if contents[i] in self.whitespaces:
                 if len(acc) > 0:
                     n = ASTnode()
@@ -190,6 +189,7 @@ class MicroAST:
 
             acc += contents[i]
 
+            # find terminator
             if self.terminator in acc:
                 length = len(self.terminator)
                 token = acc[-length:]
@@ -213,19 +213,38 @@ class MicroAST:
                 i+=1
                 continue
 
+            # find token
             for length in self.tokensByLength:
                 al = len(acc)
                 if al >= length:
                     if acc[-length:] in self.tokensByLength[length]:
                         token = acc[-length:]
                         reminder = acc[:-length]
-                        acc = ""
+                        tokenObject : Token = self.tokensByName[token]
+                        if tokenObject.brace:
+                            # brace token
+                            pass
 
-                        n = ASTnode()
-                        n.name = token
-                        n.token = self.tokensByName[token]
-                        n.type = "tokens"
-                        nodes.append(n)
+                        elif tokenObject.string:
+                            pos = len(acc)-1
+                            while True:
+                                i+=1
+                                acc += contents[i]
+                                if contents[i:i+len(tokenObject.closingBrace)] == tokenObject.closingBrace:
+                                    n = ASTnode()
+                                    n.name = acc[pos:]
+                                    n.token = tokenObject
+                                    n.type = "string"
+                                    nodes.append(n)
+                                    break
+
+                        else:
+                            # normal node
+                            n = ASTnode()
+                            n.name = token
+                            n.token = tokenObject
+                            n.type = "tokens"
+                            nodes.append(n)
 
                         if len(reminder) > 0:
                             n = ASTnode()
@@ -235,6 +254,8 @@ class MicroAST:
                             else:
                                 n.type = "text"
                             nodes.append(n)
+
+                        acc = ""
             i+=1
 
         for node in nodes:
