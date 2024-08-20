@@ -36,6 +36,19 @@ class Token:
     def __repr__(self):
         return str(self)
 
+class ASTnode:
+    token = None
+    name = "---"
+    type = ""
+
+    braceDepth = 0
+
+    def __str__(self):
+        return ("AST[\"{}\" {}]".format(self.name, self.type))
+
+    def __repr__(self) -> str:
+        return str(self)
+
 class MicroAST:
     def __init__(self, jsonFile) -> None:
         with (ROOT / jsonFile).open() as f:
@@ -49,6 +62,9 @@ class MicroAST:
         self.tokens = {}
         self.tokensByName = {}
         self.tokensByLength = {}
+
+        self.whitespaces = self.langSpec["whitespaces"]
+        self.terminator = self.langSpec["terminator"]
 
         for id, tokens in contents["tokens"].items():
             self.tokens[int(id)] = []
@@ -76,13 +92,15 @@ class MicroAST:
                         elif item[0:5] == "assoc":
                             tk.association = item[7:]
 
-                    self.tokens[int(id)].append(tk)
-                    self.tokensByName[tk.name].append(tk)
+                self.tokens[int(id)].append(tk)
+                self.tokensByName[tk.text] = tk
 
-        for token in self.tokensByLength:
+        for token in self.tokensByName:
             if len(token) not in self.tokensByLength:
-                self.tokensByLength = []
-            self.tokensByLength[len(token)] = token
+                self.tokensByLength[len(token)] = []
+            self.tokensByLength[len(token)].append(token)
+
+        print(self.tokensByLength)
 
         for id, param in contents["tokenGroupParams"].items():
             for token in self.tokens[int(id)]:
@@ -150,6 +168,77 @@ class MicroAST:
         # print(contents)
 
         # step 2 - parse file to get nodes
+
+        nodes = []
+
+        i = 0
+        l = len(contents)
+        acc = ""
+        while i < l:
+            if contents[i] in self.whitespaces:
+                if len(acc) > 0:
+                    n = ASTnode()
+                    n.name = acc
+                    if n.name in self.keywords:
+                        n.type = "keyword"
+                    else:
+                        n.type = "text"
+                    nodes.append(n)
+                acc = ""
+                i+=1
+                continue
+
+            acc += contents[i]
+
+            if self.terminator in acc:
+                length = len(self.terminator)
+                token = acc[-length:]
+                reminder = acc[:-length]
+                acc = ""
+
+                n = ASTnode()
+                n.name = token
+                n.type = "terminator"
+                nodes.append(n)
+
+                if len(reminder) > 0:
+                    n = ASTnode()
+                    n.name = reminder
+                    if n.name in self.keywords:
+                        n.type = "keyword"
+                    else:
+                        n.type = "text"
+                    nodes.append(n)
+                
+                i+=1
+                continue
+
+            for length in self.tokensByLength:
+                al = len(acc)
+                if al >= length:
+                    if acc[-length:] in self.tokensByLength[length]:
+                        token = acc[-length:]
+                        reminder = acc[:-length]
+                        acc = ""
+
+                        n = ASTnode()
+                        n.name = token
+                        n.token = self.tokensByName[token]
+                        n.type = "tokens"
+                        nodes.append(n)
+
+                        if len(reminder) > 0:
+                            n = ASTnode()
+                            n.name = reminder
+                            if n.name in self.keywords:
+                                n.type = "keyword"
+                            else:
+                                n.type = "text"
+                            nodes.append(n)
+            i+=1
+
+        for node in nodes:
+            print(node)
 
         # step 3 - order nodes by line priority and contents
 
