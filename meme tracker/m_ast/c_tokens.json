@@ -5,7 +5,6 @@
 
     "langSpec":{
         "lineCountinuation" : "\\",
-        "blocks" : ["{", "}"],
         "inlineComment" : "//",
         "blockComment" : ["/*", "*/"],
         "terminator" : ";",
@@ -45,7 +44,7 @@
             ["+", "unary"], 
             ["-", "unary"],
             "!", "~",
-            "*",
+            "*", "%",
             "&"
         ],
         "2":["*", "/", "&"],

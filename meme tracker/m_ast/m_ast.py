@@ -90,9 +90,9 @@ class MicroAST:
                             tk.separator = True
                         elif item[0:5] == "brace":
                             tk.brace = True
-                            tk.closingBrace = item[7:]
+                            tk.closingBrace = item[6:]
                         elif item[0:5] == "assoc":
-                            tk.association = item[7:]
+                            tk.association = item[6:]
                         elif item[0:6] == "string":
                             tk.string = True
                             tk.closingBrace = item[7:]
@@ -105,7 +105,7 @@ class MicroAST:
                 self.tokensByLength[len(token)] = []
             self.tokensByLength[len(token)].append(token)
 
-        print(self.tokensByLength)
+        # print(self.tokensByLength)
 
         for id, param in contents["tokenGroupParams"].items():
             for token in self.tokens[int(id)]:
@@ -122,9 +122,9 @@ class MicroAST:
                         tk.separator = True
                     elif item[0:5] == "brace":
                         tk.brace = True
-                        tk.closingBrace = item[7:]
+                        tk.closingBrace = item[6:]
                     elif item[0:5] == "assoc":
-                        tk.association = item[7:]
+                        tk.association = item[6:]
                     elif item[0:6] == "string":
                         tk.string = True
                         tk.closingBrace = item[7:]
@@ -168,7 +168,8 @@ class MicroAST:
         # step 2 - parse file to get nodes
 
         nodes = []
-
+        braceStack = []
+        closingBrace = None
         i = 0
         l = len(contents)
         acc = ""
@@ -196,11 +197,7 @@ class MicroAST:
                 reminder = acc[:-length]
                 acc = ""
 
-                n = ASTnode()
-                n.name = token
-                n.type = "terminator"
-                nodes.append(n)
-
+                # add reminder before the actual node
                 if len(reminder) > 0:
                     n = ASTnode()
                     n.name = reminder
@@ -209,53 +206,104 @@ class MicroAST:
                     else:
                         n.type = "text"
                     nodes.append(n)
+
+                n = ASTnode()
+                n.name = token
+                n.type = "terminator"
+                nodes.append(n)
                 
                 i+=1
                 continue
 
-            # find token
-            for length in self.tokensByLength:
-                al = len(acc)
-                if al >= length:
-                    if acc[-length:] in self.tokensByLength[length]:
-                        token = acc[-length:]
-                        reminder = acc[:-length]
-                        tokenObject : Token = self.tokensByName[token]
-                        if tokenObject.brace:
-                            # brace token
-                            pass
+            # find closing brace
+            if closingBrace != None:
+                if closingBrace in acc:
+                    length = len(closingBrace)
+                    token = acc[-length:]
+                    reminder = acc[:-length]
+                    acc = ""
 
-                        elif tokenObject.string:
-                            pos = len(acc)-1
-                            while True:
-                                i+=1
-                                acc += contents[i]
-                                if contents[i:i+len(tokenObject.closingBrace)] == tokenObject.closingBrace:
-                                    n = ASTnode()
-                                    n.name = acc[pos:]
-                                    n.token = tokenObject
-                                    n.type = "string"
-                                    nodes.append(n)
-                                    break
+                    if braceStack:
+                        closingBrace = braceStack.pop()
+                    else:
+                        closingBrace = None
 
+                    # add reminder before the actual node
+                    if len(reminder) > 0:
+                        n = ASTnode()
+                        n.name = reminder
+                        if n.name in self.keywords:
+                            n.type = "keyword"
                         else:
-                            # normal node
-                            n = ASTnode()
-                            n.name = token
-                            n.token = tokenObject
-                            n.type = "tokens"
-                            nodes.append(n)
+                            n.type = "text"
+                        nodes.append(n)
 
-                        if len(reminder) > 0:
-                            n = ASTnode()
-                            n.name = reminder
-                            if n.name in self.keywords:
-                                n.type = "keyword"
-                            else:
-                                n.type = "text"
-                            nodes.append(n)
+                    n = ASTnode()
+                    n.name = token
+                    n.type = "closingBrace"
+                    nodes.append(n)
 
-                        acc = ""
+
+                    i+=1
+                    continue
+
+            # find token
+            ordered = list(self.tokensByLength.keys())
+            ordered.sort(reverse=True)
+            for length in ordered:
+                if contents[i:i+length] in self.tokensByLength[length]:
+                    token = contents[i:i+length]
+                    reminder = acc[:-1]
+                    tokenObject : Token = self.tokensByName[token]
+
+                    # add reminder before the actual nodes
+                    if len(reminder) > 0:
+                        n = ASTnode()
+                        n.name = reminder
+                        if n.name in self.keywords:
+                            n.type = "keyword"
+                        else:
+                            n.type = "text"
+                        nodes.append(n)
+
+                    if tokenObject.brace:
+                        # brace mode
+                        if closingBrace != None:
+                            braceStack.append(closingBrace)
+                        closingBrace = tokenObject.closingBrace
+                        n = ASTnode()
+                        n.name = token
+                        n.token = tokenObject
+                        n.type = "brace"
+                        nodes.append(n)
+
+                    elif tokenObject.string:
+                        # string mode
+                        pos = len(acc)-1
+                        while True:
+                            i+=1
+                            acc += contents[i]
+                            if contents[i:i+len(tokenObject.closingBrace)] == tokenObject.closingBrace:
+                                n = ASTnode()
+                                n.name = acc[pos:]
+                                n.token = tokenObject
+                                n.type = "string"
+                                nodes.append(n)
+                                break
+
+                    else:
+                        # normal node
+                        n = ASTnode()
+                        n.name = token
+                        n.token = tokenObject
+                        n.type = "token"
+                        nodes.append(n)
+
+                    # -1 here represents the i pointer moving by one
+                    # that's the best explanation I can give atm lmao
+                    # TODO explain why this actually works
+                    i += length-1
+                    acc = ""
             i+=1
 
         for node in nodes:
