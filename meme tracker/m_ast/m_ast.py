@@ -1,6 +1,8 @@
 import json
 import pathlib
 
+from functools import cmp_to_key
+
 ROOT = pathlib.Path(__file__).parent
 
 class Token:
@@ -208,6 +210,10 @@ class MicroAST:
 
 
         # step 2 - parse file to get nodes
+        defaultToken = Token("",-1)
+        if "defaltAssociation" in self.langSpec:
+            defaultToken.association = self.langSpec["defaltAssociation"]
+
         nodes = []
         braceStack = []
         closingBrace = None
@@ -226,6 +232,8 @@ class MicroAST:
                         n.type = "text"
                     n.line = lineIndex[i-len(acc)-1]
                     n.character = charIndex[i-len(acc)-1]
+                    n.braceDepth = len(braceStack)
+                    n.token = defaultToken
                     nodes.append(n)
                 acc = ""
                 i+=1
@@ -250,6 +258,8 @@ class MicroAST:
                         n.type = "text"
                     n.line = lineIndex[i-(len(reminder) + len(token))]
                     n.character = charIndex[i-(len(reminder) + len(token))]
+                    n.braceDepth = len(braceStack)
+                    n.token = defaultToken
                     nodes.append(n)
 
                 n = ASTnode()
@@ -257,6 +267,8 @@ class MicroAST:
                 n.type = "terminator"
                 n.line = lineIndex[i-len(token)]
                 n.character = charIndex[i-len(token)]
+                n.braceDepth = len(braceStack)
+                n.token = defaultToken
                 nodes.append(n)
                 
                 i+=1
@@ -270,11 +282,6 @@ class MicroAST:
                     reminder = acc[:-length]
                     acc = ""
 
-                    if braceStack:
-                        closingBrace = braceStack.pop()
-                    else:
-                        closingBrace = None
-
                     # add reminder before the actual node
                     if len(reminder) > 0:
                         n = ASTnode()
@@ -285,15 +292,23 @@ class MicroAST:
                             n.type = "text"
                         n.line = lineIndex[i-(len(reminder) + len(token))]
                         n.character = charIndex[i-(len(reminder) + len(token))]
+                        n.braceDepth = len(braceStack)
+                        n.token = defaultToken
                         nodes.append(n)
+
+                    if braceStack:
+                        closingBrace = braceStack.pop()
+                    else:
+                        closingBrace = None
 
                     n = ASTnode()
                     n.name = token
                     n.type = "closingBrace"
                     n.line = lineIndex[i-len(token)]
                     n.character = charIndex[i-len(token)]
+                    n.braceDepth = len(braceStack)
+                    n.token = defaultToken
                     nodes.append(n)
-
 
                     i+=1
                     continue
@@ -317,20 +332,24 @@ class MicroAST:
                             n.type = "text"
                         n.line = lineIndex[i-(len(reminder) + len(token))]
                         n.character = charIndex[i-(len(reminder) + len(token))]
+                        n.braceDepth = len(braceStack)
+                        # n.token = defaultToken
                         nodes.append(n)
 
                     if tokenObject.brace:
                         # brace mode
-                        if closingBrace != None:
-                            braceStack.append(closingBrace)
-                        closingBrace = tokenObject.closingBrace
                         n = ASTnode()
                         n.name = token
                         n.token = tokenObject
                         n.type = "brace"
                         n.line = lineIndex[i-len(token)]
                         n.character = charIndex[i-len(token)]
+                        n.braceDepth = len(braceStack)
                         nodes.append(n)
+                        
+                        if closingBrace != None:
+                            braceStack.append(closingBrace)
+                        closingBrace = tokenObject.closingBrace
 
                     elif tokenObject.string:
                         # string mode
@@ -345,6 +364,7 @@ class MicroAST:
                                 n.type = "string"
                                 n.line = lineIndex[i-len(n.name)]
                                 n.character = charIndex[i-len(n.name)]
+                                n.braceDepth = len(braceStack)
                                 nodes.append(n)
                                 break
 
@@ -356,6 +376,7 @@ class MicroAST:
                         n.type = "token"
                         n.line = lineIndex[i-len(token)]
                         n.character = charIndex[i-len(token)]
+                        n.braceDepth = len(braceStack)
                         nodes.append(n)
 
                     # -1 here represents the i pointer moving by one
@@ -366,9 +387,19 @@ class MicroAST:
             i+=1
 
         for node in nodes:
-            print(node)
+            print("   " * node.braceDepth, node)
 
         # step 3 - order nodes by line priority and contents
+
+        def sortfunc(item1 : ASTnode, item2 : ASTnode):
+            if item1.line < item2.line:
+                return -1
+            elif item1.line > item2.line:
+                return 1
+            else:
+                return 0
+
+        print(sorted(nodes, key = cmp_to_key(sortfunc)))
 
         # step 4 - process brace nodes
 

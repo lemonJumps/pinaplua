@@ -8,7 +8,8 @@
         "inlineComment" : "//",
         "blockComment" : ["/*", "*/"],
         "terminator" : ";",
-        "whitespaces" : " \t\n\r"
+        "whitespaces" : " \t\n\r",
+        "defaltAssociation" : "LR"
     },
     "tokenGroupParams":{
         "0": ["assoc:LR"],
