@@ -24,6 +24,7 @@ void fnD() {}
 int main (void)
 {
     const char * hi = "Hello World 😈🐱‍💻";
+    const char*eyooo="weeeeeh";
     printf(hi);
 
     int array[20] = {123,456};

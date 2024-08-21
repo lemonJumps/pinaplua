@@ -43,10 +43,13 @@ class ASTnode:
     name = "---"
     type = ""
 
+    line = -1
+    character = -1
+
     braceDepth = 0
 
     def __str__(self):
-        return ("AST[\"{}\" {}]".format(self.name, self.type))
+        return ("AST[\"{}\" {} : {}, {}]".format(self.name, self.type, self.line, self.character))
 
     def __repr__(self) -> str:
         return str(self)
@@ -143,7 +146,18 @@ class MicroAST:
         contents = contents.replace("\r\n", "\n")
         contents = contents.replace("\r", "\n")
 
-        lineRemap = [] # keeps new indexes of lines
+        # create index of lines and index of character on line
+        lineIndex = []
+        charIndex = []
+        line = 1
+        character = 1
+        for c in contents:
+            if c == "\n":
+                line += 1
+                character = 1
+            lineIndex.append(line)
+            charIndex.append(character)
+            character += 1
 
         # remove line continuation
         if "lineCountinuation" in self.langSpec:
@@ -160,13 +174,40 @@ class MicroAST:
             for i in range(contents.count("\n")):
                 if i in remaps:
                     decrease += 1
-                lineRemap.append(i+1 - decrease)
 
-            contents = contents.replace(l + "\n", " " * (1 + len(l)))
+                contents = contents.replace(l + "\n", " " * (1 + len(l)))
+
+        # remove inline comments
+        if "inlineComment" in self.langSpec:
+            ic = self.langSpec["inlineComment"]
+
+            # remaps = []
+            f = 0
+            while True:
+                f = contents.find(ic, f+1)
+                if f == -1: break
+                e = contents.find("\n", f+1)
+                contents = (" "*len(contents[f:e])).join([contents[:f], contents[e:]])
+
+        # remove block comments
+        if "blockComment" in self.langSpec:
+            bc, bc2 = self.langSpec["blockComment"]
+
+            # remaps = []
+            f = 0
+            f2 = 0
+            while True:
+                f = contents.find(bc, f+1)
+                if f == -1: break
+                f2 = contents.find(bc2, f2+1) + len(bc2)
+                if f2 == -1: break
+
+                print(f,f2)
+                print("\"" + contents[f:f2] + "\"")
+                contents = (" "*len(contents[f:f2])).join([contents[:f], contents[f2:]])
 
 
         # step 2 - parse file to get nodes
-
         nodes = []
         braceStack = []
         closingBrace = None
@@ -183,6 +224,8 @@ class MicroAST:
                         n.type = "keyword"
                     else:
                         n.type = "text"
+                    n.line = lineIndex[i-len(acc)]
+                    n.character = charIndex[i-len(acc)]
                     nodes.append(n)
                 acc = ""
                 i+=1
@@ -205,11 +248,15 @@ class MicroAST:
                         n.type = "keyword"
                     else:
                         n.type = "text"
+                    n.line = lineIndex[i-(len(reminder) + len(token))]
+                    n.character = charIndex[i-(len(reminder) + len(token))]
                     nodes.append(n)
 
                 n = ASTnode()
                 n.name = token
                 n.type = "terminator"
+                n.line = lineIndex[i-len(token)]
+                n.character = charIndex[i-len(token)]
                 nodes.append(n)
                 
                 i+=1
@@ -236,11 +283,15 @@ class MicroAST:
                             n.type = "keyword"
                         else:
                             n.type = "text"
+                        n.line = lineIndex[i-(len(reminder) + len(token))]
+                        n.character = charIndex[i-(len(reminder) + len(token))]
                         nodes.append(n)
 
                     n = ASTnode()
                     n.name = token
                     n.type = "closingBrace"
+                    n.line = lineIndex[i-len(token)]
+                    n.character = charIndex[i-len(token)]
                     nodes.append(n)
 
 
@@ -264,6 +315,8 @@ class MicroAST:
                             n.type = "keyword"
                         else:
                             n.type = "text"
+                        n.line = lineIndex[i-(len(reminder) + len(token))]
+                        n.character = charIndex[i-(len(reminder) + len(token))]
                         nodes.append(n)
 
                     if tokenObject.brace:
@@ -275,6 +328,8 @@ class MicroAST:
                         n.name = token
                         n.token = tokenObject
                         n.type = "brace"
+                        n.line = lineIndex[i-len(token)]
+                        n.character = charIndex[i-len(token)]
                         nodes.append(n)
 
                     elif tokenObject.string:
@@ -288,6 +343,8 @@ class MicroAST:
                                 n.name = acc[pos:]
                                 n.token = tokenObject
                                 n.type = "string"
+                                n.line = lineIndex[i-len(n.name)]
+                                n.character = charIndex[i-len(n.name)]
                                 nodes.append(n)
                                 break
 
@@ -297,6 +354,8 @@ class MicroAST:
                         n.name = token
                         n.token = tokenObject
                         n.type = "token"
+                        n.line = lineIndex[i-len(token)]
+                        n.character = charIndex[i-len(token)]
                         nodes.append(n)
 
                     # -1 here represents the i pointer moving by one
