@@ -224,8 +224,8 @@ class MicroAST:
                         n.type = "keyword"
                     else:
                         n.type = "text"
-                    n.line = lineIndex[i-len(acc)]
-                    n.character = charIndex[i-len(acc)]
+                    n.line = lineIndex[i-len(acc)-1]
+                    n.character = charIndex[i-len(acc)-1]
                     nodes.append(n)
                 acc = ""
                 i+=1
