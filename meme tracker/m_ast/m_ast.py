@@ -23,7 +23,7 @@ class Token:
     string = False
 
     def __init__(self, text, priority) -> None:
-        self.priority = priority
+        self.priority = int(priority)
         self.text = text
 
     def __str__(self) -> str:
@@ -41,7 +41,7 @@ class Token:
         return str(self)
 
 class ASTnode:
-    token = None
+    token : Token = None
     name = "---"
     type = ""
 
@@ -333,7 +333,7 @@ class MicroAST:
                         n.line = lineIndex[i-(len(reminder) + len(token))]
                         n.character = charIndex[i-(len(reminder) + len(token))]
                         n.braceDepth = len(braceStack)
-                        # n.token = defaultToken
+                        n.token = defaultToken
                         nodes.append(n)
 
                     if tokenObject.brace:
@@ -389,19 +389,20 @@ class MicroAST:
         for node in nodes:
             print("   " * node.braceDepth, node)
 
-        # step 3 - order nodes by line priority and contents
-
-        def sortfunc(item1 : ASTnode, item2 : ASTnode):
-            if item1.line < item2.line:
-                return -1
-            elif item1.line > item2.line:
-                return 1
-            else:
-                return 0
-
-        print(sorted(nodes, key = cmp_to_key(sortfunc)))
-
         # step 4 - process brace nodes
+
+        acc = []
+        accStack = []
+
+        i = 0
+        while True:            
+            acc.append(nodes[i])
+            if nodes[i].type == "brace":
+                accStack.append(acc)
+                acc = []
+            elif nodes[i].type == "closingBrace":
+                acc = accStack.pop()
+
 
         # step 5 - run all the other nodes
 
