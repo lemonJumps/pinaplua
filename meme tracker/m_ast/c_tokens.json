@@ -3,6 +3,7 @@
     "version":"C98",
     "fileVersion":"0.1a",
 
+    "ruleFile":"c_rules.py",
     "langSpec":{
         "lineCountinuation" : "\\",
         "inlineComment" : "//",

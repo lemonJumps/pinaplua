@@ -1,7 +1,8 @@
 import json
 import pathlib
 
-from functools import cmp_to_key
+import importlib.util
+import sys
 
 ROOT = pathlib.Path(__file__).parent
 
@@ -75,6 +76,15 @@ class MicroAST:
 
         self.whitespaces = self.langSpec["whitespaces"]
         self.terminator = self.langSpec["terminator"]
+
+        self.rules = None
+
+        if "ruleFile" in contents:
+            spec = importlib.util.spec_from_file_location("module.name", (ROOT / contents["ruleFile"]).absolute().as_posix())
+            foo = importlib.util.module_from_spec(spec)
+            sys.modules["module.name"] = foo
+            spec.loader.exec_module(foo)
+            self.rules = foo.Rules()
 
         for id, tokens in contents["tokens"].items():
             self.tokens[int(id)] = []
@@ -403,10 +413,12 @@ class MicroAST:
 
         i = 0
         def processNodes(acc, root = None):
-            if len(acc) == 0:
-                return
+            # if len(acc) == 0:
+            #     return
             
-            print("Processing these: ", acc)
+            print("Processing:", acc, end="\n\n")
+
+            # pick the highest node here
 
         while True:            
             if nodes[i].type == "brace":
@@ -415,15 +427,15 @@ class MicroAST:
                 acc = []
             elif nodes[i].type == "closingBrace":
                 # process collected nodes
-                processNodes(acc)
                 acc = accStack.pop()
+                processNodes(acc)
             elif nodes[i].type == "terminator":
                 # process collected nodes
                 processNodes(acc)
                 acc = []
             else:
                 acc.append(nodes[i])
-                print("   " * len(accStack), nodes[i])
+                # print("   " * len(accStack), nodes[i])
 
             i += 1
             if i == len(nodes):
