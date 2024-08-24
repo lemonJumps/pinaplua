@@ -50,6 +50,9 @@ class ASTnode:
 
     braceDepth = 0
 
+    parent = None
+    children = []
+
     def __str__(self):
         return ("AST[\"{}\" {} : {}, {}]".format(self.name, self.type, self.line, self.character))
 
@@ -204,8 +207,8 @@ class MicroAST:
                 f2 = contents.find(bc2, f2+1) + len(bc2)
                 if f2 == -1: break
 
-                print(f,f2)
-                print("\"" + contents[f:f2] + "\"")
+                # print(f,f2)
+                # print("\"" + contents[f:f2] + "\"")
                 contents = (" "*len(contents[f:f2])).join([contents[:f], contents[f2:]])
 
 
@@ -367,13 +370,17 @@ class MicroAST:
                                 n.braceDepth = len(braceStack)
                                 nodes.append(n)
                                 break
-
+                    
                     else:
                         # normal node
                         n = ASTnode()
                         n.name = token
                         n.token = tokenObject
-                        n.type = "token"
+                        
+                        if tokenObject.separator == True:
+                            n.type = "separator"
+                        else:
+                            n.type = "token"
                         n.line = lineIndex[i-len(token)]
                         n.character = charIndex[i-len(token)]
                         n.braceDepth = len(braceStack)
@@ -386,23 +393,41 @@ class MicroAST:
                     acc = ""
             i+=1
 
-        for node in nodes:
-            print("   " * node.braceDepth, node)
+        # for node in nodes:
+        #     print("   " * node.braceDepth, node)
 
         # step 4 - process brace nodes
-
+        
         acc = []
         accStack = []
 
         i = 0
+        def processNodes(acc, root = None):
+            if len(acc) == 0:
+                return
+            
+            print("Processing these: ", acc)
+
         while True:            
-            acc.append(nodes[i])
             if nodes[i].type == "brace":
+                acc.append(nodes[i])
                 accStack.append(acc)
                 acc = []
             elif nodes[i].type == "closingBrace":
+                # process collected nodes
+                processNodes(acc)
                 acc = accStack.pop()
+            elif nodes[i].type == "terminator":
+                # process collected nodes
+                processNodes(acc)
+                acc = []
+            else:
+                acc.append(nodes[i])
+                print("   " * len(accStack), nodes[i])
 
+            i += 1
+            if i == len(nodes):
+                break # end of processing z
 
         # step 5 - run all the other nodes
 
@@ -424,10 +449,10 @@ if __name__ == "__main__":
             "closBr".ljust(9) + \
             "ternary".ljust(9) + \
             "separator".ljust(9))
-    for i, tokens in m.tokens.items():
-        print(i, end="")
-        for item in tokens:
-            print("\t", item)
-    print("keywords:",m.keywords)
+    # for i, tokens in m.tokens.items():
+    #     print(i, end="")
+    #     for item in tokens:
+    #         print("\t", item)
+    # print("keywords:",m.keywords)
 
     m.parseFile(ROOT / "ast_test.h")
