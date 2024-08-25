@@ -417,8 +417,9 @@ class MicroAST:
             #     return
             
             print("Processing:", acc, end="\n\n")
-
-            # pick the highest node here
+            for j in range(len(acc)):
+                res = self.rules.isNodeSeparate(acc[:j-1], acc[j], acc[1+j:], len(accStack))
+                print(res)
 
         while True:            
             if nodes[i].type == "brace":
@@ -428,6 +429,7 @@ class MicroAST:
             elif nodes[i].type == "closingBrace":
                 # process collected nodes
                 acc = accStack.pop()
+                acc.append(nodes[i])
                 processNodes(acc)
             elif nodes[i].type == "terminator":
                 # process collected nodes
