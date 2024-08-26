@@ -23,6 +23,8 @@ class Token:
 
     string = False
 
+    retype = None
+
     def __init__(self, text, priority) -> None:
         self.priority = int(priority)
         self.text = text
@@ -114,6 +116,8 @@ class MicroAST:
                         elif item[0:6] == "string":
                             tk.string = True
                             tk.closingBrace = item[7:]
+                        elif item[0:6] == "retype":
+                            tk.retype = item[7:]
 
                 self.tokens[int(id)].append(tk)
                 self.tokensByName[tk.text] = tk
@@ -146,6 +150,8 @@ class MicroAST:
                     elif item[0:6] == "string":
                         tk.string = True
                         tk.closingBrace = item[7:]
+                    elif item[0:6] == "retype":
+                        tk.retype = item[7:]
 
         self.keywords = contents["keywords"]
 
@@ -339,7 +345,9 @@ class MicroAST:
                     if len(reminder) > 0:
                         n = ASTnode()
                         n.name = reminder
-                        if n.name in self.keywords:
+                        if tokenObject.retype != None:
+                            n.type = tokenObject.retype
+                        elif n.name in self.keywords:
                             n.type = "keyword"
                         else:
                             n.type = "text"
@@ -354,7 +362,10 @@ class MicroAST:
                         n = ASTnode()
                         n.name = token
                         n.token = tokenObject
-                        n.type = "brace"
+                        if tokenObject.retype != None:
+                            n.type = tokenObject.retype
+                        else:
+                            n.type = "brace"
                         n.line = lineIndex[i-len(token)]
                         n.character = charIndex[i-len(token)]
                         n.braceDepth = len(braceStack)
@@ -374,7 +385,10 @@ class MicroAST:
                                 n = ASTnode()
                                 n.name = acc[pos:]
                                 n.token = tokenObject
-                                n.type = "string"
+                                if tokenObject.retype != None:
+                                    n.type = tokenObject.retype
+                                else:
+                                    n.type = "string"
                                 n.line = lineIndex[i-len(n.name)]
                                 n.character = charIndex[i-len(n.name)]
                                 n.braceDepth = len(braceStack)
@@ -386,8 +400,9 @@ class MicroAST:
                         n = ASTnode()
                         n.name = token
                         n.token = tokenObject
-                        
-                        if tokenObject.separator == True:
+                        if tokenObject.retype != None:
+                            n.type = tokenObject.retype
+                        elif tokenObject.separator == True:
                             n.type = "separator"
                         else:
                             n.type = "token"
@@ -417,9 +432,9 @@ class MicroAST:
             #     return
             
             print("Processing:", acc, end="\n\n")
-            for j in range(len(acc)):
-                res = self.rules.isNodeSeparate(acc[:j-1], acc[j], acc[1+j:], len(accStack))
-                print(res)
+            # for j in range(len(acc)):
+            #     res = self.rules.isNodeSeparate(acc[:j-1], acc[j], acc[1+j:], len(accStack))
+            #     print(res)
 
         while True:            
             if nodes[i].type == "brace":
@@ -430,7 +445,7 @@ class MicroAST:
                 # process collected nodes
                 acc = accStack.pop()
                 acc.append(nodes[i])
-                processNodes(acc)
+
             elif nodes[i].type == "terminator":
                 # process collected nodes
                 processNodes(acc)
@@ -438,6 +453,10 @@ class MicroAST:
             else:
                 acc.append(nodes[i])
                 # print("   " * len(accStack), nodes[i])
+
+            if self.rules.isNodeSeparate(acc, nodes[i], [], len(accStack)):
+                processNodes(acc)
+                acc = []
 
             i += 1
             if i == len(nodes):

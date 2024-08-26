@@ -8,5 +8,8 @@ class Rules:
         if depth == 0:
             if node.type == "closingBrace" and node.name == "}":
                 return True
-
+            if node.type == "pre_processor":
+                return True
+            # if "#" in previousNodes[0].name:
+            #     return True=
         return False

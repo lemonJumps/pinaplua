@@ -68,7 +68,10 @@
             "<<=", ">>=",
             "&=", "^=", "|="
         ],
-        "16":[[",", "separator"]]
+        "16":[[",", "separator"]],
+        "17":[
+            ["#", "string:\n", "retype:pre_processor"]
+        ]
     },
     "keywords":[
         "auto",
