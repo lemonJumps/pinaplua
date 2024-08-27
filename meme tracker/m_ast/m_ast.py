@@ -4,6 +4,9 @@ import pathlib
 import importlib.util
 import sys
 
+# for comparison
+from functools import cmp_to_key
+
 ROOT = pathlib.Path(__file__).parent
 
 class Token:
@@ -235,6 +238,7 @@ class MicroAST:
 
         nodes = []
         braceStack = []
+        braceTokenStack = []
         closingBrace = None
         i = 0
         l = len(contents)
@@ -317,8 +321,10 @@ class MicroAST:
 
                     if braceStack:
                         closingBrace = braceStack.pop()
+                        closingBraceToken = braceTokenStack.pop()
                     else:
                         closingBrace = None
+                        closingBraceToken = defaultToken
 
                     n = ASTnode()
                     n.name = token
@@ -326,7 +332,7 @@ class MicroAST:
                     n.line = lineIndex[i-len(token)]
                     n.character = charIndex[i-len(token)]
                     n.braceDepth = len(braceStack)
-                    n.token = defaultToken
+                    n.token = closingBraceToken
                     nodes.append(n)
 
                     i+=1
@@ -371,8 +377,9 @@ class MicroAST:
                         n.braceDepth = len(braceStack)
                         nodes.append(n)
                         
-                        if closingBrace != None:
+                        if tokenObject.closingBrace != None:
                             braceStack.append(closingBrace)
+                            braceTokenStack.append(tokenObject)
                         closingBrace = tokenObject.closingBrace
 
                     elif tokenObject.string:
@@ -427,14 +434,57 @@ class MicroAST:
         accStack = []
 
         i = 0
-        def processNodes(acc, root = None):
+        def processNodes(acc : list[ASTnode], root = None):
             # if len(acc) == 0:
             #     return
             
-            print("Processing:", acc, end="\n\n")
+            print("Processing:", acc)
             # for j in range(len(acc)):
             #     res = self.rules.isNodeSeparate(acc[:j-1], acc[j], acc[1+j:], len(accStack))
             #     print(res)
+
+            order = list(range(len(acc)))
+
+            def compare(a, b):
+                nodeA : ASTnode = acc[a]
+                nodeB : ASTnode = acc[b]
+
+                if nodeA.braceDepth > nodeB.braceDepth:
+                    return -1 # node a is deeper
+                elif nodeA.braceDepth < nodeB.braceDepth:
+                    return 1 # node b is deeper
+                else:
+                    if nodeA.token.priority > nodeB.token.priority:
+                        return -1 # node a has higher priority
+                    elif nodeA.token.priority < nodeB.token.priority:
+                        return 1 # node b has higher priority
+                    else:
+                        if nodeA.token.association == "LR":
+                            if a < b:
+                                return -1
+                            else:
+                                return 1
+                        else:
+                            if a > b:
+                                return -1
+                            else:
+                                return 1
+
+            nodeOrder = sorted(order, key=cmp_to_key(compare))
+
+            for id in order:
+                print("   " * nodeOrder[id], end = "")
+                print(acc[id].name, acc[id].token.priority, acc[id].braceDepth, acc[id].token.association, acc[id].line, acc[id].character)
+
+                if acc[id].token.unary == False or acc[id].token.suffix == True:
+                    if id-1 > 0:
+                        pass #print("suffix", acc[id-1].name) # left node
+                
+                if acc[id].token.unary == False or acc[id].token.prefix == True:
+                    if id+1 < len(acc): 
+                        pass #print("prefix", acc[id+1].name) # right node
+            
+            print()
 
         while True:            
             if nodes[i].type == "brace":
