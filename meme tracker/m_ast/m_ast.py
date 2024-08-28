@@ -57,7 +57,8 @@ class ASTnode:
     braceDepth = 0
 
     parent = None
-    children = []
+    def __init__(self) -> None:
+        self.children = []
 
     def __str__(self):
         return ("AST[\"{}\" {} : {}, {}]".format(self.name, self.type, self.line, self.character))
@@ -425,16 +426,13 @@ class MicroAST:
                     acc = ""
             i+=1
 
-        # for node in nodes:
-        #     print("   " * node.braceDepth, node)
-
-        # step 4 - process brace nodes
+        # step 4 - process all nodes
         
         acc = []
         accStack = []
 
         i = 0
-        def processNodes(acc : list[ASTnode], root = None):
+        def processNodes(acc : list[ASTnode], root : ASTnode = None):
             # if len(acc) == 0:
             #     return
             
@@ -473,31 +471,22 @@ class MicroAST:
             # order nodes by priority
             nodeOrder = sorted(order, key=cmp_to_key(compare))
 
-
-            # def getHighest(nodes : list):
-            #     idx = 0
-            #     i = nodes[0]
-            #     for ii in range(len(nodes)):
-            #         if nodes[ii] > i:
-            #             i = nodes[ii]
-            #             idx = ii
-            #     return idx
-
             for id in nodeOrder:
                 print("   " * order[id], end = "")
                 print(acc[id].name)
 
-            # this keeps track of the high level
-            mainRoot = nodeOrder[0]
-
             consumed = [0] * len(nodeOrder)
-            consumed[0] = 1
-            parents = [None]
+            consumed[0] = 1 # first node consumed on entry
             stack = [nodeOrder[0]]
+            lLims = [-1]
+            rLims = [len(nodeOrder)]
+
             while stack:
-                # root = roots.pop()
                 idx = stack.pop()
-                print(idx)
+                lLim = lLims.pop()
+                rLim = rLims.pop()
+
+                print(acc[idx])
 
                 if acc[idx].token.unary == False or acc[idx].token.suffix == True:
                     # find highest node to the left:
@@ -506,8 +495,8 @@ class MicroAST:
                     while True:
                         res = nodeOrder[i]
                         
-                        # check if node was not consumed and is to the right?
-                        if nodeOrder[i] > idx and consumed[i] != 1:
+                        # check if node was not consumed and is to the left?
+                        if res < idx and consumed[i] != 1 and res > lLim and res < rLim:
                             break
 
                         i += 1
@@ -519,8 +508,11 @@ class MicroAST:
                     if res != None:
                         consumed[i] = 1
                         stack.append(res)
-
-                        # attach node to the parent
+                        lLims.append(lLim)
+                        rLims.append(res-1) # result limits access from the right
+                        # link nodes
+                        acc[idx].children.append(acc[res])
+                        acc[res].parent = acc[idx]
 
                 if acc[idx].token.unary == False or acc[idx].token.prefix == True:
                     # find highest node to the right:
@@ -528,7 +520,7 @@ class MicroAST:
                     res = None
                     while True:
                         res = nodeOrder[i]
-                        if nodeOrder[i] < idx and consumed[i] != 1:
+                        if res > idx and consumed[i] != 1 and res > lLim and res < rLim:
                             break
 
                         i += 1
@@ -540,18 +532,31 @@ class MicroAST:
                     if res != None:
                         consumed[i] = 1
                         stack.append(res)
+                        lLims.append(res+1) # result limits access from the left
+                        rLims.append(rLim) 
+                        # link nodes
+                        acc[idx].children.append(acc[res])
+                        acc[res].parent = acc[idx]
 
+            if root != None:
+                root.children.append(acc[nodeOrder[0]])
+                acc[nodeOrder[0]].parent = root
 
-
-            #     if acc[id].token.unary == False or acc[id].token.suffix == True:
-            #         if id-1 > 0:
-            #             print("suffix", acc[id-1].name) # left node
-                
-            #     if acc[id].token.unary == False or acc[id].token.prefix == True:
-            #         if id+1 < len(acc): 
-            #             print("prefix", acc[id+1].name) # right node
-            
             print()
+            return acc[nodeOrder[0]]
+
+        def printResult(node : ASTnode):
+            stack = [node]
+            depth = [0]
+            while stack:
+                n = stack.pop()
+                d = depth.pop()
+
+                print("  " * d, n)
+
+                stack.extend(n.children)
+                depth.extend([d+1]*len(n.children))
+
 
         while True:            
             if nodes[i].type == "brace":
@@ -560,28 +565,29 @@ class MicroAST:
                 acc = []
             elif nodes[i].type == "closingBrace":
                 # process collected nodes
+                # result = processNodes(acc)
                 acc = accStack.pop()
                 acc.append(nodes[i])
 
             elif nodes[i].type == "terminator":
                 # process collected nodes
-                processNodes(acc)
+                result = processNodes(acc)
+                printResult(result)
                 acc = []
             else:
                 acc.append(nodes[i])
                 # print("   " * len(accStack), nodes[i])
 
             if self.rules.isNodeSeparate(acc, nodes[i], [], len(accStack)):
-                processNodes(acc)
+                result = processNodes(acc)
+                printResult(result)
                 acc = []
 
             i += 1
             if i == len(nodes):
-                break # end of processing z
+                break # end of processing
 
-        # step 5 - run all the other nodes
-
-        # return nodes
+        
 
 if __name__ == "__main__":
     m = MicroAST("c_tokens.json")
