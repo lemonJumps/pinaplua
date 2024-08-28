@@ -10,7 +10,7 @@
         "blockComment" : ["/*", "*/"],
         "terminator" : ";",
         "whitespaces" : " \t\n\r",
-        "defaltAssociation" : "LR"
+        "defaltAssociation" : "RL"
     },
     "tokenGroupParams":{
         "0": ["assoc:LR"],
@@ -70,7 +70,7 @@
         ],
         "16":[[",", "separator"]],
         "17":[
-            ["#", "string:\n", "retype:pre_processor"]
+            ["#", "string:\n", "retype:pre_processor", "unary"]
         ]
     },
     "keywords":[

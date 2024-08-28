@@ -470,19 +470,86 @@ class MicroAST:
                             else:
                                 return 1
 
+            # order nodes by priority
             nodeOrder = sorted(order, key=cmp_to_key(compare))
 
-            for id in order:
-                print("   " * nodeOrder[id], end = "")
-                print(acc[id].name, acc[id].token.priority, acc[id].braceDepth, acc[id].token.association, acc[id].line, acc[id].character)
 
-                if acc[id].token.unary == False or acc[id].token.suffix == True:
-                    if id-1 > 0:
-                        pass #print("suffix", acc[id-1].name) # left node
+            # def getHighest(nodes : list):
+            #     idx = 0
+            #     i = nodes[0]
+            #     for ii in range(len(nodes)):
+            #         if nodes[ii] > i:
+            #             i = nodes[ii]
+            #             idx = ii
+            #     return idx
+
+            for id in nodeOrder:
+                print("   " * order[id], end = "")
+                print(acc[id].name)
+
+            # this keeps track of the high level
+            mainRoot = nodeOrder[0]
+
+            consumed = [0] * len(nodeOrder)
+            consumed[0] = 1
+            parents = [None]
+            stack = [nodeOrder[0]]
+            while stack:
+                # root = roots.pop()
+                idx = stack.pop()
+                print(idx)
+
+                if acc[idx].token.unary == False or acc[idx].token.suffix == True:
+                    # find highest node to the left:
+                    i = 0
+                    res = None
+                    while True:
+                        res = nodeOrder[i]
+                        
+                        # check if node was not consumed and is to the right?
+                        if nodeOrder[i] > idx and consumed[i] != 1:
+                            break
+
+                        i += 1
+                        
+                        if i == len(nodeOrder):
+                            res = None
+                            break
+
+                    if res != None:
+                        consumed[i] = 1
+                        stack.append(res)
+
+                        # attach node to the parent
+
+                if acc[idx].token.unary == False or acc[idx].token.prefix == True:
+                    # find highest node to the right:
+                    i = 0
+                    res = None
+                    while True:
+                        res = nodeOrder[i]
+                        if nodeOrder[i] < idx and consumed[i] != 1:
+                            break
+
+                        i += 1
+                        
+                        if i == len(nodeOrder):
+                            res = None
+                            break
+
+                    if res != None:
+                        consumed[i] = 1
+                        stack.append(res)
+
+
+
+            #     if acc[id].token.unary == False or acc[id].token.suffix == True:
+            #         if id-1 > 0:
+            #             print("suffix", acc[id-1].name) # left node
                 
-                if acc[id].token.unary == False or acc[id].token.prefix == True:
-                    if id+1 < len(acc): 
-                        pass #print("prefix", acc[id+1].name) # right node
+            #     if acc[id].token.unary == False or acc[id].token.prefix == True:
+            #         if id+1 < len(acc): 
+            #             print("prefix", acc[id+1].name) # right node
             
             print()
 
