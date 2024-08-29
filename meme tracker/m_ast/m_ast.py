@@ -494,6 +494,7 @@ class MicroAST:
                     res = None
                     while True:
                         res = nodeOrder[i]
+                        # print("L", acc[res].name, res, lLim, rLim, idx)
                         
                         # check if node was not consumed and is to the left?
                         if res < idx and consumed[i] != 1 and res > lLim and res < rLim:
@@ -509,7 +510,7 @@ class MicroAST:
                         consumed[i] = 1
                         stack.append(res)
                         lLims.append(lLim)
-                        rLims.append(res-1) # result limits access from the right
+                        rLims.append(idx) # result limits access from the right
                         # link nodes
                         acc[idx].children.append(acc[res])
                         acc[res].parent = acc[idx]
@@ -520,6 +521,7 @@ class MicroAST:
                     res = None
                     while True:
                         res = nodeOrder[i]
+                        # print("R", acc[res].name, res, lLim, rLim, idx)
                         if res > idx and consumed[i] != 1 and res > lLim and res < rLim:
                             break
 
@@ -532,7 +534,7 @@ class MicroAST:
                     if res != None:
                         consumed[i] = 1
                         stack.append(res)
-                        lLims.append(res+1) # result limits access from the left
+                        lLims.append(idx) # result limits access from the left
                         rLims.append(rLim) 
                         # link nodes
                         acc[idx].children.append(acc[res])
