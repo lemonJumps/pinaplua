@@ -7,6 +7,17 @@ import sys
 # for comparison
 from functools import cmp_to_key
 
+"""
+Hello dear reader,
+
+You may notice that this code looks trash, and you'd be right.
+this is a code meant to aid in testing, and development.
+
+And while I can't really recommend to use this outside of this projec.
+As it's very much written to only work with this project.
+I'm going to just say, go nuts and have fun!
+"""
+
 ROOT = pathlib.Path(__file__).parent
 
 class Token:
@@ -159,7 +170,7 @@ class MicroAST:
 
         self.keywords = contents["keywords"]
 
-    def parseFile(self, file, encoding = "utf-8"):
+    def parseFile(self, file, encoding = "utf-8") -> ASTnode:
         # step 0 - load file
         with pathlib.Path(file).open(encoding=encoding) as f:
             contents = f.read()
@@ -436,7 +447,7 @@ class MicroAST:
             # if len(acc) == 0:
             #     return
             
-            print("Processing:", acc)
+            # print("Processing:", acc)
             # for j in range(len(acc)):
             #     res = self.rules.isNodeSeparate(acc[:j-1], acc[j], acc[1+j:], len(accStack))
             #     print(res)
@@ -471,9 +482,9 @@ class MicroAST:
             # order nodes by priority
             nodeOrder = sorted(order, key=cmp_to_key(compare))
 
-            for id in nodeOrder:
-                print("   " * order[id], end = "")
-                print(acc[id].name)
+            # for id in nodeOrder:
+            #     print("   " * order[id], end = "")
+            #     print(acc[id].name)
 
             consumed = [0] * len(nodeOrder)
             consumed[0] = 1 # first node consumed on entry
@@ -486,7 +497,7 @@ class MicroAST:
                 lLim = lLims.pop()
                 rLim = rLims.pop()
 
-                print(acc[idx])
+                # print(acc[idx])
 
                 if acc[idx].token.unary == False or acc[idx].token.suffix == True:
                     # find highest node to the left:
@@ -544,37 +555,43 @@ class MicroAST:
                 root.children.append(acc[nodeOrder[0]])
                 acc[nodeOrder[0]].parent = root
 
-            print()
+            # print()
             return acc[nodeOrder[0]]
 
-        def printResult(node : ASTnode):
-            stack = [node]
-            depth = [0]
-            while stack:
-                n = stack.pop()
-                d = depth.pop()
 
-                print("  " * d, n)
+        rootNode = ASTnode()
+        rootNode.name = "ROOT"
+        roots = [rootNode]
 
-                stack.extend(n.children)
-                depth.extend([d+1]*len(n.children))
+        protectionSet = set()
 
+        def testIfprotected(value):
+            if value in protectionSet:
+                print("ERROR!!!!")
+                raise RuntimeError
+            protectionSet.add(value)
 
-        while True:            
+        while True:
             if nodes[i].type == "brace":
                 acc.append(nodes[i])
                 accStack.append(acc)
                 acc = []
+                roots.append(nodes[i])
+
+
             elif nodes[i].type == "closingBrace":
                 # process collected nodes
                 # result = processNodes(acc)
                 acc = accStack.pop()
                 acc.append(nodes[i])
+                roots.pop()
 
             elif nodes[i].type == "terminator":
                 # process collected nodes
                 result = processNodes(acc)
-                printResult(result)
+                if result != None:
+                    testIfprotected(result)
+                    roots[-1].children.append(result)
                 acc = []
             else:
                 acc.append(nodes[i])
@@ -582,14 +599,28 @@ class MicroAST:
 
             if self.rules.isNodeSeparate(acc, nodes[i], [], len(accStack)):
                 result = processNodes(acc)
-                printResult(result)
+                if result != None:
+                    testIfprotected(result)
+                    roots[-1].children.append(result)
                 acc = []
 
             i += 1
             if i == len(nodes):
                 break # end of processing
 
-        
+        return rootNode
+
+def printResult(node : ASTnode):
+    stack = [node]
+    depth = [0]
+    while stack:
+        n = stack.pop()
+        d = depth.pop()
+
+        print("  " * d, n)
+
+        stack.extend(n.children)
+        depth.extend([d+1]*len(n.children))
 
 if __name__ == "__main__":
     m = MicroAST("c_tokens.json")
@@ -613,4 +644,6 @@ if __name__ == "__main__":
     #         print("\t", item)
     # print("keywords:",m.keywords)
 
-    m.parseFile(ROOT / "ast_test.h")
+    result = m.parseFile(ROOT / "ast_test.h")
+
+    printResult(result)
