@@ -1,0 +1,9 @@
+- [ ] dynamic memory - linked list of pools
+- [ ] Stacks
+	- [ ] I Stack
+	- [ ] D Stack
+	- [ ] R Stack
+	- [ ] call size Stack
+- [ ] NameDB (names data in storage)
+- [ ] Storage (multiple instances)
+- [ ] Pinaple (runner)

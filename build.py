@@ -21,7 +21,7 @@ def build(target):
         
     CC = config["CC"]
     buildFlags = config["buildFlags"]
-    headers = []
+    headerFolders = set()
 
     fileTargets = {}
     folders = config["folders"].copy()
@@ -34,18 +34,40 @@ def build(target):
             file : Path
             if file.is_file():
                 if file.suffix == ".h":
-                    headers.append(file.absolute().as_posix())
+                    headerFolders.add(file.parent.absolute().as_posix())
                 else:
-                    targetPath = (ROOT / buildRoot / folder / (file.with_suffix(".o")).name).absolute().as_posix()
+                    targetPath = (ROOT / buildRoot / folder / (file.with_suffix(".o")).name)
+
+                    targetPath.parent.mkdir(parents=True, exist_ok=True)
 
                     fileTarget = [
                         file.absolute().as_posix()
                     ]
 
-                    fileTargets[targetPath] = fileTarget
+                    fileTargets[targetPath.absolute().as_posix()] = fileTarget
 
+    def runCommand(line):
+        print("running: {}".format(line))
+        return subprocess.Popen(line)
+
+    headerSting = ""
+    for folder in headerFolders:
+        headerSting += " -I" + folder + " "
+
+    # compile
+    procs = []
     for fTarget, fSource in fileTargets.items():
-        print(fTarget, fSource)
-        subprocess.Popen("{} -c {} -o {} {}".format(CC, fSource, fTarget, buildFlags))
-        time.sleep(1)        
+        proc = runCommand("{} -c -o {} {} {} {}".format(CC, fTarget, fSource[0], buildFlags, headerSting))
+        procs.append(proc)
 
+    for proc in procs:
+        proc.wait()
+
+    fileString = ""
+    for file in fileTargets.keys():
+        fileString += " " + file
+
+    # link
+    proc = runCommand("{} -o {} {}".format(CC, config["output"], fileString))
+
+    proc.wait()

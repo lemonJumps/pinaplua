@@ -3,6 +3,7 @@
         "folders" : ["pinaple", "tests"],
         "buildFolder" : "build_test",
         "CC" : "gcc",
-        "buildFlags" : "-ggdb -DDEBUG=1"
+        "buildFlags" : "-ggdb -DDEBUG=1",
+        "output" : "test.exe"
     }
 }
