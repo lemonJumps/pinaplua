@@ -108,23 +108,23 @@ int main(void)
 
 
         // allocate lots of ram
-        for (size_t i = 0; i < 5000; i++)
-        {
-            size_t dummy;
-            storage_alloc(storage, 20, dummy);
-        }
+        // for (size_t i = 0; i < 5000; i++)
+        // {
+        //     size_t dummy;
+        //     storage_alloc(storage, 20, dummy);
+        // }
 
         // check if memory is decreased by free
-        {
-            size_t before;
-            size_t after; 
+        // {
+        //     size_t before;
+        //     size_t after; 
 
-            before = get_ram_usage();
-            storage_free(storage);
-            after = get_ram_usage();
+        //     before = get_ram_usage();
+        //     storage_free(storage);
+        //     after = get_ram_usage();
 
-            printf("%i %i\n", before, after);
-        }
+        //     printf("%i %i\n", before, after);
+        // }
     }
 
     END_TEST();

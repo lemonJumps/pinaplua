@@ -1,0 +1,8 @@
+{
+    "native-test" : {
+        "folders" : ["pinaple", "tests"],
+        "buildFolder" : "build_test",
+        "CC" : "gcc",
+        "buildFlags" : "-ggdb -DDEBUG=1"
+    }
+}

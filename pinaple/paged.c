@@ -5,6 +5,8 @@
 #include <memory.h>
 #include <stdlib.h>
 
+#include "dbgLib.h"
+
 // you may notice that this looks awfully like OOP.. that's because it is :D
 
 void * _paged_alloc(
@@ -14,7 +16,14 @@ void * _paged_alloc(
     void (*deallocate)(struct Paged * paged),
     size_t size)
 {
+    testPtr(isFull);
+    testPtr(isEmpty);
+    testPtr(allocate);
+    testPtr(deallocate);
+    
     struct Paged * ptr = MALLOC(sizeof(struct Paged));
+    
+    testPtr(ptr);
     ptr->isFull = isFull;
     ptr->isEmpty = isEmpty;
     ptr->allocate = allocate;
@@ -41,6 +50,7 @@ void _paged_delete(struct Paged * paged)
 
 void paged_expand(struct Paged * paged)
 {
+    testPtr(paged);
     struct Paged * ptr = paged;
 
     // go to last element
@@ -51,7 +61,7 @@ void paged_expand(struct Paged * paged)
 
 struct Paged * paged_checkSpace(struct Paged * paged)
 {
-
+    testPtr(paged);
     struct Paged * ptr = paged;
 
     // go to last element
@@ -98,13 +108,20 @@ struct Paged * paged_new(
     size_t size
     )
 {
+    testPtr(isFull);
+    testPtr(isEmpty);
+    testPtr(allocate);
+    testPtr(deallocate);
+
     struct Paged * ptr = _paged_alloc(isFull, isEmpty, allocate, deallocate, size);
+    testPtr(ptr);
 
     return ptr;
 }
 
 void paged_delete(struct Paged * paged)
 {
+    testPtr(paged);
     struct Paged * ptr = paged;
 
     // go to last element
@@ -120,6 +137,7 @@ void paged_delete(struct Paged * paged)
 
 struct Paged * paged_getLast(struct Paged * paged)
 {
+    testPtr(paged);
     struct Paged * ptr = paged;
     struct Paged * nptr = paged;
     while (nptr != NULL) {
