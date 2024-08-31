@@ -1,8 +1,11 @@
 
-#include "pineaple.h"
+// #include "pineaple.h"
 #include <stdio.h>
 #include <string.h>
 
+
+#include "pinlock.h"
+#include "pthread.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -55,6 +58,25 @@ int _test(int i, int j)
     return i + j;
 }
 
+struct lockThread
+{
+    lockType * _lock;
+    int * result;
+};
+
+void* checkLockThread(void * p)
+{
+    struct lockThread * lt = p;
+
+    for (int i = 0; i < 20; i++)
+    {
+        // *(*lt).result = checkLocked((*lt)._lock);
+        printf("%i",checkLocked((*lt)._lock));
+        Sleep(10);
+    }
+    return NULL;
+}
+
 int main(void)
 {
     volatile int a = _test(
@@ -74,57 +96,29 @@ int main(void)
     failCount = 0;
     printf("\n\n");
 
-    printf("unit-test \n pinaple::storage\n");
+    printf("unit-test \n pinLock.h\n");
 
     {
-        printf("  first element test\n");
+        pthread_t thread;
 
-        const char * test1 = "test string 1";
+        lockType testLock;
+        struct lockThread lt;
+        lt._lock = &testLock;
 
-        PStorage * storage = storage_new();
+        createLock(&testLock);
+        TEST(lock(&testLock) == 1, "lock sucess", "lock fail");
 
-        // allocate storage
-        size_t id;
-        const char * pt = storage_alloc(storage, strlen(test1), &id);
+        TEST(checkLocked(&testLock) == 1, "lock is set", "lock isn't set");
 
-        Storage * s  = ((Storage *)storage->ptr);
-        TEST(s != NULL, "storage is allocated", "storage is null")
-        TEST(s->count == 1, "one element is allocated", "wrong number of allocated items")
-        TEST(s->needs_free[0] > 0, "element 0 needs free", "element 0 isn't marked as needs free")
-        TEST(s->size[0] == strlen(test1), "element 0 length is correct", "element 0 length is wrong")
-        TEST(id == 0, "ID is returned as id 0", "ID returned is wrong")
+        pthread_create(&thread, NULL, checkLockThread, &lt);
 
-        memcpy(pt, test1, strlen(test1));
+        Sleep(100);
 
+        TEST(unlock(&testLock) == 1, "unlock sucess", "unlock fail");
 
-        printf("  second element test\n");
+        TEST(checkLocked(&testLock) == 0, "lock is unset", "lock isn't set");
 
-        id = storage_copyTo(storage, pt, strlen(pt));
-
-        TEST(s->count == 2, "two elements are allocated", "wrong number of allocated items")
-        TEST(s->needs_free[1] > 0, "element 1 needs free", "element 1 isn't marked as needs free")
-        TEST(s->size[1] == strlen(test1), "element 1 length is correct", "element 1 length is wrong")
-        TEST(id == 1, "ID is returned as id 1", "ID returned is wrong")
-
-
-        // allocate lots of ram
-        // for (size_t i = 0; i < 5000; i++)
-        // {
-        //     size_t dummy;
-        //     storage_alloc(storage, 20, dummy);
-        // }
-
-        // check if memory is decreased by free
-        // {
-        //     size_t before;
-        //     size_t after; 
-
-        //     before = get_ram_usage();
-        //     storage_free(storage);
-        //     after = get_ram_usage();
-
-        //     printf("%i %i\n", before, after);
-        // }
+        pthread_join(thread, NULL);
     }
 
     END_TEST();

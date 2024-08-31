@@ -1,34 +1,36 @@
 #include "pinlock.h"
 
-#ifndef C11_ATOM
+#ifdef C11_ATOM
 
 #include <stdatomic.h>
 #include <stdbool.h>
 
 // default implementation, uses boolean
-void createLock(lockType lock)
+void createLock(lockType * lock)
 {
     atomic_init(lock, 0);
 }
 
-void destroyLock(lockType lock)
+void destroyLock(lockType * lock)
 {
     
 }
 
-bool lock(lockType lock)
+bool lock(lockType * lock)
 {
-    int val = 0;
-    return atomic_compare_exchange_strong(lock, val, 1);
+    int exp = 0;
+    int des = 1;
+    return atomic_compare_exchange_weak(lock, &exp, des);
 }
 
-bool unlock(lockType lock)
+bool unlock(lockType * lock)
 {
-    int val = 1;
-    return atomic_compare_exchange_strong(lock, val, 0);
+    int exp = 1;
+    int des = 0;
+    return atomic_compare_exchange_weak(lock, &exp, des);
 }
 
-bool checkLocked(lockType lock)
+bool checkLocked(lockType * lock)
 {
     *lock > 0;
 }
@@ -36,31 +38,31 @@ bool checkLocked(lockType lock)
 #else
 
 // default implementation, uses boolean
-void createLock(lockType lock)
+void createLock(lockType * lock)
 {
     *lock = 0;
 }
 
-void destroyLock(lockType lock)
+void destroyLock(lockType * lock)
 {
     
 }
 
-bool lock(lockType lock)
+bool lock(lockType * lock)
 {
     if (*lock > 0) return false;
     *lock = 1;
     return true;
 }
 
-bool unlock(lockType lock)
+bool unlock(lockType * lock)
 {
     if (*lock == 0) return false;
     *lock = 0;
     return true;
 }
 
-bool checkLocked(lockType lock)
+bool checkLocked(lockType * lock)
 {
     return *lock > 0;
 }

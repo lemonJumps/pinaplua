@@ -1,7 +1,7 @@
 /**
  * @file pinlock.h
  * @author Lemon Jumps
- * @brief defines atomic operations and how they work
+ * @brief 
  * @version 0.1
  * @date 2024-08-30
  * 
@@ -18,24 +18,25 @@
 #endif
 #endif
 
+#include <stdbool.h>
+
 #ifdef C11_ATOM
 
 #include <stdatomic.h>
-#include <stdbool.h>
 
-typedef atomic_int * lockType;
+typedef atomic_int lockType;
 
 #else
 
-typedef volatile int * lockType;
+typedef volatile int lockType;
 
 #endif
 
 // default implementation, uses boolean
-void createLock(lockType lock);
-void destroyLock(lockType lock);
+void createLock(lockType * lock);
+void destroyLock(lockType * lock);
 
-bool lock(lockType lock);
-bool unlock(lockType lock);
+bool lock(lockType * lock);
+bool unlock(lockType * lock);
 
-bool checkLocked(lockType lock);
+bool checkLocked(lockType * lock);
