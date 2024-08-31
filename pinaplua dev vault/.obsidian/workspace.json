@@ -28,21 +28,31 @@
                 "file": "Excalidraw/core structure.md"
               }
             }
+          },
+          {
+            "id": "c7d59ccd7bd4ebac",
+            "type": "leaf",
+            "state": {
+              "type": "excalidraw",
+              "state": {
+                "file": "Excalidraw/structured memory.md"
+              }
+            }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       },
       {
-        "id": "8ce14db852a8862a",
+        "id": "25448332e9c3532d",
         "type": "tabs",
         "children": [
           {
-            "id": "9053fe81e74960cf",
+            "id": "ee64a3efbce42c2d",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "requirement list.md",
+                "file": "paged memory design.md",
                 "mode": "source",
                 "source": false
               }
@@ -114,7 +124,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "requirement list.md",
+                "file": "paged memory design.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -131,7 +141,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "requirement list.md",
+                "file": "paged memory design.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -154,7 +164,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "requirement list.md"
+                "file": "paged memory design.md"
               }
             }
           }
@@ -176,14 +186,16 @@
       "obsidian-excalidraw-plugin:Create new drawing": false
     }
   },
-  "active": "9053fe81e74960cf",
+  "active": "ee64a3efbce42c2d",
   "lastOpenFiles": [
-    "Excalidraw/core structure.md",
+    "Excalidraw/structured memory.md",
     "requirement list.md",
-    "Excalidraw",
+    "paged memory design.md",
     "What is this.md",
+    "Excalidraw/core structure.md",
     "MEME tracer.md",
     "micro AST behavior.md",
+    "Excalidraw",
     "Welcome.md"
   ]
 }
