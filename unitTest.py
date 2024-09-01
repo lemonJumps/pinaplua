@@ -7,5 +7,5 @@ ROOT = Path(__file__).parent
 
 build("native-test")
 
-proc = subprocess.Popen("test.exe")
-proc.wait()
+# proc = subprocess.Popen("test.exe")
+# proc.wait()

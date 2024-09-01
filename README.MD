@@ -45,6 +45,21 @@ And that I can literally use any language I please, as long as I write lexer for
 - [ ] lua plugin loading
 - [ ] python plugin loading
 
+## arch support:
+- [ ] AMD64 windows
+- [ ] windows vectorcall
+- [ ] System V AMD64 ABI
+  
+- [ ] x86 cdecl
+- [ ] x86 Pascal
+- [ ] x86 windows fastcall non-member
+- [ ] x86 windows fastcall member
+- [ ] x86 Watcom (maybe)
+
+- [ ] IA-32 (maybeeeee not)
+- [ ] arm-none-eabi
+- [ ] aarch64
+
 ## build support:
 - [ ] windows build
 - [ ] android crossbuild

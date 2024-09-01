@@ -2,10 +2,18 @@ from pathlib import Path
 import json
 import subprocess
 import time
+import platform
 
 ROOT = Path(__file__).parent
 
-def build(target):
+def build(target, machine = None, system = None):
+    if machine == None:
+        machine = platform.machine()
+    if system == None:
+        system = platform.system()
+
+    print("building for: ", machine, system, )
+
     configs = json.loads((ROOT / "build.json").read_text("utf-8"))
 
     if target not in configs:
@@ -18,7 +26,7 @@ def build(target):
         if test not in config:
             print("argument: {} for target: {} is missing".format(test, target))
             return
-        
+
     CC = config["CC"]
     buildFlags = config["buildFlags"]
     headerFolders = set()
@@ -46,6 +54,17 @@ def build(target):
 
                     fileTargets[targetPath.absolute().as_posix()] = fileTarget
 
+    # add architecture building
+    if "archBased" in config:
+        if machine + "_" + system in config["archBased"]:
+            for filePath in config["archBased"][machine + "_" + system]:
+                file = Path(filePath)
+                print(file)
+                targetPath = (ROOT / buildRoot / folder / (file.with_suffix(".o")).name)
+                targetPath.parent.mkdir(parents=True, exist_ok=True)
+                fileTarget = [file.absolute().as_posix()]
+                fileTargets[targetPath.absolute().as_posix()] = fileTarget
+
     def runCommand(line):
         print("running: {}".format(line))
         return subprocess.Popen(line)
@@ -56,6 +75,7 @@ def build(target):
 
     # compile
     procs = []
+
     for fTarget, fSource in fileTargets.items():
         proc = runCommand("{} -c -o {} {} {} {}".format(CC, fTarget, fSource[0], buildFlags, headerSting))
         procs.append(proc)

@@ -17,4 +17,6 @@
 
 #include <stddef.h>
 
-void pinADcallCDECL32(void * function, void * values, size_t * sizes, size_t count);
+#define STDCALL __attribute__((stdcall))
+
+STDCALL void pinADcallCDECL32(void * function, void * values, size_t * sizes, size_t count);

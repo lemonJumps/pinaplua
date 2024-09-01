@@ -1,5 +1,11 @@
 {
     "native-test" : {
+        "archBased" : {
+            "AMD64_Windows":[
+                "pinaple/archDependent/win64.S"
+            ]
+        
+        },
         "folders" : ["pinaple", "tests"],
         "buildFolder" : "build_test",
         "CC" : "gcc",
