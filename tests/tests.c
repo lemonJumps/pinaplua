@@ -6,6 +6,7 @@
 
 #include "pinlock.h"
 #include "pthread.h"
+#include "pinADep.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -77,6 +78,11 @@ void* checkLockThread(void * p)
     return NULL;
 }
 
+int testFunc(int a, int b)
+{
+    return a + b;
+}
+
 int main(void)
 {
     volatile int a = _test(
@@ -119,6 +125,12 @@ int main(void)
         TEST(checkLocked(&testLock) == 0, "lock is unset", "lock isn't set");
 
         pthread_join(thread, NULL);
+    }
+
+    {
+        int values[] = {2, 3};
+        size_t sizes[] = {sizeof(int), sizeof(int)};
+        pinADcallCDECL32(testFunc, values, sizes, 2);
     }
 
     END_TEST();
