@@ -78,9 +78,9 @@ void* checkLockThread(void * p)
     return NULL;
 }
 
-int testFunc(int a, int b)
+int testFunc(int a, int b, int c, int e, int f)
 {
-    return a + b;
+    return a + b + f +c +e;
 }
 
 int main(void)
@@ -128,9 +128,9 @@ int main(void)
     }
 
     {
-        int values[] = {2, 3};
-        size_t sizes[] = {sizeof(int), sizeof(int)};
-        pinADcallCDECL32(testFunc, values, sizes, 2);
+        int values[] = {2, 3, 4, 6, 6};
+        size_t sizes[] = {sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int)};
+        pinADcallWIN(testFunc, values, sizes, 5);
     }
 
     END_TEST();
