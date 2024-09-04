@@ -45,7 +45,7 @@ _rcxSW8:
     mov r11, qword ptr [rdx + r10]
     jmp _rcxSWend
 _rcxSWend:
-    inc r10
+    add r10, 8
 
     dec r9d
     jz __winCall
@@ -71,7 +71,7 @@ _rdxSW8:
     mov r12, qword ptr [rdx + r10]
     jmp _rdxSWend
 _rdxSWend:
-    inc r10
+    add r10, 8
 
     dec r9d
     jz __winCall
@@ -85,19 +85,19 @@ _rdxSWend:
     je _r8SW8
     
 _r8SW1:
-    mov r13b, byte ptr [r8 + r10]
+    mov r13b, byte ptr [rdx + r10]
     jmp _r8SWend
 _r8SW2:
-    mov r13w, word ptr [r8 + r10]
+    mov r13w, word ptr [rdx + r10]
     jmp _r8SWend
 _r8SW4:
-    mov r13d, dword ptr [r8 + r10]
+    mov r13d, dword ptr [rdx + r10]
     jmp _r8SWend
 _r8SW8:
-    mov r13, qword ptr [r8 + r10]
+    mov r13, qword ptr [rdx + r10]
     jmp _r8SWend
 _r8SWend:
-    inc r10
+    add r10, 8
 
     dec r9d
     jz __winCall
@@ -111,26 +111,36 @@ _r8SWend:
     je _r9SW8
     
 _r9SW1:
-    mov r14b, byte ptr [r8 + r10]
+    mov r14b, byte ptr [rdx + r10]
     jmp _r9SWend
 _r9SW2:
-    mov r14w, word ptr [r8 + r10]
+    mov r14w, word ptr [rdx + r10]
     jmp _r9SWend
 _r9SW4:
-    mov r14d, dword ptr [r8 + r10]
+    mov r14d, dword ptr [rdx + r10]
     jmp _r9SWend
 _r9SW8:
-    mov r14, qword ptr [r8 + r10]
+    mov r14, qword ptr [rdx + r10]
     jmp _r9SWend
 _r9SWend:
-    inc r10
+    add r10, 8
 
 __winCallLoop:
-    dec r9d
     nop
+    add r10, 8
+    dec r9d
     jnz __winCallLoop
 __winCall:
-    call rcx
+    mov rax, rcx
+    mov rdx, r11
+    mov rcx, r12
+    mov r9, r13
+    mov r8, r14
+    sub rsp, 32
+
+    call rax
+
+    add rsp, 32
     pop rbp
     ret
 

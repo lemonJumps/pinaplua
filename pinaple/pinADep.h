@@ -19,4 +19,4 @@
 
 #define STDCALL __attribute__((stdcall))
 
-STDCALL void pinADcallWIN(void * function, void * values, size_t * sizes, size_t count);
+STDCALL void * pinADcallWIN(void * function, void * values, size_t * sizes, size_t count);

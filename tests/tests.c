@@ -80,7 +80,7 @@ void* checkLockThread(void * p)
 
 int testFunc(int a, int b, int c, int e, int f)
 {
-    return a + b + f +c +e;
+    return a + b + f + c + e;
 }
 
 int main(void)
@@ -128,9 +128,11 @@ int main(void)
     }
 
     {
-        int values[] = {2, 3, 4, 6, 6};
+        int values[] = {2, 3, 4, 6, 69};
         size_t sizes[] = {sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int)};
-        pinADcallWIN(testFunc, values, sizes, 5);
+        size_t result = (size_t) pinADcallWIN(testFunc, values, sizes, 5);
+    
+        TEST(result == 84, "foreign call succeeded!", "foreign call failed")
     }
 
     END_TEST();
