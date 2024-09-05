@@ -24,109 +24,74 @@ pinADcallWIN:
 
     dec r9d
     jz __winCall
+
     mov rax, qword ptr [r8 + r10]
     cmp rax, 1
-    je _rcxSW1
+    je _rcxSWfloat
     cmp rax, 2
-    je _rcxSW2
-    cmp rax, 4
-    je _rcxSW4
-    cmp rax, 8
-    je _rcxSW8
-    
-_rcxSW1:
-    mov r11b, byte ptr [rdx + r10]
-    jmp _rcxSWend
-_rcxSW2:
-    mov r11w, word ptr [rdx + r10]
-    jmp _rcxSWend
-_rcxSW4:
-    mov r11d, dword ptr [rdx + r10]
-    jmp _rcxSWend
-_rcxSW8:
+    je _rcxSWdouble
     mov r11, qword ptr [rdx + r10]
     jmp _rcxSWend
+_rcxSWfloat:
+    movss xmm0, dword ptr [rdx + r10]
+    jmp _rcxSWend
+_rcxSWdouble:
+    movsd xmm0, qword ptr [rdx + r10]
 _rcxSWend:
     add r10, 8
 
     dec r9d
     jz __winCall
+
     mov rax, qword ptr [r8 + r10]
     cmp rax, 1
-    je _rdxSW1
+    je _rdxSWfloat
     cmp rax, 2
-    je _rdxSW2
-    cmp rax, 4
-    je _rdxSW4
-    cmp rax, 8
-    je _rdxSW8
-    
-_rdxSW1:
-    mov r12b, byte ptr [rdx + r10]
-    jmp _rdxSWend
-_rdxSW2:
-    mov r12w, word ptr [rdx + r10]
-    jmp _rdxSWend
-_rdxSW4:
-    mov r12d, dword ptr [rdx + r10]
-    jmp _rdxSWend
-_rdxSW8:
+    je _rdxSWdouble
     mov r12, qword ptr [rdx + r10]
     jmp _rdxSWend
+_rdxSWfloat:
+    movss xmm1, dword ptr [rdx + r10]
+    jmp _rdxSWend
+_rdxSWdouble:
+    movsd xmm1, qword ptr [rdx + r10]
 _rdxSWend:
     add r10, 8
 
     dec r9d
     jz __winCall
+
     mov rax, qword ptr [r8 + r10]
     cmp rax, 1
-    je _r8SW1
+    je _r8SWfloat
     cmp rax, 2
-    je _r8SW2
-    cmp rax, 4
-    je _r8SW4
-    cmp rax, 8
-    je _r8SW8
-    
-_r8SW1:
-    mov r13b, byte ptr [rdx + r10]
-    jmp _r8SWend
-_r8SW2:
-    mov r13w, word ptr [rdx + r10]
-    jmp _r8SWend
-_r8SW4:
-    mov r13d, dword ptr [rdx + r10]
-    jmp _r8SWend
-_r8SW8:
+    je _r8SWdouble
+    jnz _r8SWfloat
     mov r13, qword ptr [rdx + r10]
     jmp _r8SWend
+_r8SWfloat:
+    movss xmm2, dword ptr [rdx + r10]
+    jmp _r8SWend
+_r8SWdouble:
+    movsd xmm2, qword ptr [rdx + r10]
 _r8SWend:
     add r10, 8
 
     dec r9d
     jz __winCall
+
     mov rax, qword ptr [r8 + r10]
     cmp rax, 1
-    je _r9SW1
+    je _r9SWfloat
     cmp rax, 2
-    je _r9SW2
-    cmp rax, 4
-    je _r9SW4
-    cmp rax, 8
-    je _r9SW8
-    
-_r9SW1:
-    mov r14b, byte ptr [rdx + r10]
-    jmp _r9SWend
-_r9SW2:
-    mov r14w, word ptr [rdx + r10]
-    jmp _r9SWend
-_r9SW4:
-    mov r14d, dword ptr [rdx + r10]
-    jmp _r9SWend
-_r9SW8:
+    je _r9SWdouble
     mov r14, qword ptr [rdx + r10]
     jmp _r9SWend
+_r9SWfloat:
+    movss xmm3, dword ptr [rdx + r10]
+    jmp _r9SWend
+_r9SWdouble:
+    movsd xmm3, qword ptr [rdx + r10]
 _r9SWend:
     add r10, 8
 

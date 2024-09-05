@@ -19,13 +19,21 @@
 
 #define STDCALL __attribute__((stdcall))
 
+enum pinADvarType
+{
+    pinADVT_integral = 0,
+    pinADVT_float = 1,
+    pinADVT_double = 2,
+    pinADVT_vect256,
+};
+
 /**
  * @brief call function with the windows call semantics
  * 
  * @param function function pointer to be called, can be any executable address
  * @param values array of size_t values, passed as parameters.
- * @param sizes array of sizes of parameters, allowed sizes are: 1, 2, 4, 8
+ * @param types contains types of variable, differs for every architecture and call type
  * @param count count of parameters
- * @return STDCALL* 
+ * @return void * con
  */
-STDCALL void * pinADcallWIN(void * function, size_t * values, size_t * sizes, size_t count);
+STDCALL void * pinADcallWIN(void * function, size_t * values, size_t * types, size_t count);
