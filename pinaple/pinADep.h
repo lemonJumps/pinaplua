@@ -19,4 +19,13 @@
 
 #define STDCALL __attribute__((stdcall))
 
-STDCALL void * pinADcallWIN(void * function, void * values, size_t * sizes, size_t count);
+/**
+ * @brief call function with the windows call semantics
+ * 
+ * @param function function pointer to be called, can be any executable address
+ * @param values array of size_t values, passed as parameters.
+ * @param sizes array of sizes of parameters, allowed sizes are: 1, 2, 4, 8
+ * @param count count of parameters
+ * @return STDCALL* 
+ */
+STDCALL void * pinADcallWIN(void * function, size_t * values, size_t * sizes, size_t count);

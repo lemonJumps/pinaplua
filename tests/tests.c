@@ -78,9 +78,29 @@ void* checkLockThread(void * p)
     return NULL;
 }
 
-int testFunc(int a, int b, int c, int e, int f)
+int FCtest(int a, int b, int c, int e, int f)
 {
-    return a + b + f + c + e;
+    int ret = a + b + f + c + e;
+    printf("value a: %i\n", a);
+    printf("value b: %i\n", b);
+    printf("value c: %i\n", c);
+    printf("value e: %i\n", e);
+    printf("value f: %i\n", f);
+
+    return ret;
+}
+
+int FCtest2(long long a, char b, char c, int d, long long e, int f)
+{
+    int ret = a + b + c + d + e + f;
+    printf("value a: %i\n", a);
+    printf("value b: %i\n", b);
+    printf("value c: %i\n", c);
+    printf("value d: %i\n", d);
+    printf("value e: %i\n", e);
+    printf("value f: %i\n", f);
+
+    return ret;
 }
 
 int main(void)
@@ -121,6 +141,7 @@ int main(void)
         Sleep(100);
 
         TEST(unlock(&testLock) == 1, "unlock sucess", "unlock fail");
+        Sleep(150);
 
         TEST(checkLocked(&testLock) == 0, "lock is unset", "lock isn't set");
 
@@ -128,11 +149,19 @@ int main(void)
     }
 
     {
-        int values[] = {2, 3, 4, 6, 69};
+        size_t values[] = {2, 3, 4, 5, 6};
         size_t sizes[] = {sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int)};
-        size_t result = (size_t) pinADcallWIN(testFunc, values, sizes, 5);
+        size_t result = (size_t) pinADcallWIN(FCtest, values, sizes, 5);
     
-        TEST(result == 84, "foreign call succeeded!", "foreign call failed")
+        TEST(result == 2+3+4+5+6, "foreign call succeeded!", "foreign call failed")
+    }
+
+    {
+        size_t values[] = {2, 3, 4, 5, 6, 8};
+        size_t sizes[] = {sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int)};
+        size_t result = (size_t) pinADcallWIN(FCtest2, values, sizes, 6);
+    
+        TEST(result == 2 + 3 + 4 + 5 + 6 + 8, "foreign call succeeded!", "foreign call failed")
     }
 
     END_TEST();

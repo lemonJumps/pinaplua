@@ -19,17 +19,19 @@ pinADcallWIN:
     push rbp
     mov rbp, rsp
     
+    xor r15, r15
     xor r10, r10
 
     dec r9d
     jz __winCall
-    cmp qword ptr [r8 + r10], 1
+    mov rax, qword ptr [r8 + r10]
+    cmp rax, 1
     je _rcxSW1
-    cmp qword ptr [r8 + r10], 2
+    cmp rax, 2
     je _rcxSW2
-    cmp qword ptr [r8 + r10], 4
+    cmp rax, 4
     je _rcxSW4
-    cmp qword ptr [r8 + r10], 8
+    cmp rax, 8
     je _rcxSW8
     
 _rcxSW1:
@@ -49,13 +51,14 @@ _rcxSWend:
 
     dec r9d
     jz __winCall
-    cmp qword ptr [r8 + r10], 1
+    mov rax, qword ptr [r8 + r10]
+    cmp rax, 1
     je _rdxSW1
-    cmp qword ptr [r8 + r10], 2
+    cmp rax, 2
     je _rdxSW2
-    cmp qword ptr [r8 + r10], 4
+    cmp rax, 4
     je _rdxSW4
-    cmp qword ptr [r8 + r10], 8
+    cmp rax, 8
     je _rdxSW8
     
 _rdxSW1:
@@ -75,13 +78,14 @@ _rdxSWend:
 
     dec r9d
     jz __winCall
-    cmp qword ptr [r8 + r10], 1
+    mov rax, qword ptr [r8 + r10]
+    cmp rax, 1
     je _r8SW1
-    cmp qword ptr [r8 + r10], 2
+    cmp rax, 2
     je _r8SW2
-    cmp qword ptr [r8 + r10], 4
+    cmp rax, 4
     je _r8SW4
-    cmp qword ptr [r8 + r10], 8
+    cmp rax, 8
     je _r8SW8
     
 _r8SW1:
@@ -101,13 +105,14 @@ _r8SWend:
 
     dec r9d
     jz __winCall
-    cmp qword ptr [r8 + r10], 1
+    mov rax, qword ptr [r8 + r10]
+    cmp rax, 1
     je _r9SW1
-    cmp qword ptr [r8 + r10], 2
+    cmp rax, 2
     je _r9SW2
-    cmp qword ptr [r8 + r10], 4
+    cmp rax, 4
     je _r9SW4
-    cmp qword ptr [r8 + r10], 8
+    cmp rax, 8
     je _r9SW8
     
 _r9SW1:
@@ -125,8 +130,12 @@ _r9SW8:
 _r9SWend:
     add r10, 8
 
+    cmp r9d, 0
+    je __winCall
+
 __winCallLoop:
-    nop
+    push qword ptr [rdx + r10]
+    add r15, 8
     add r10, 8
     dec r9d
     jnz __winCallLoop
@@ -136,11 +145,17 @@ __winCall:
     mov rcx, r12
     mov r9, r13
     mov r8, r14
+
+    mov qword ptr [rbp + 16], r15
+
     sub rsp, 32
 
     call rax
 
+    mov r15, qword ptr [rbp + 16]
+    add rsp, r15
     add rsp, 32
+    
     pop rbp
     ret
 
