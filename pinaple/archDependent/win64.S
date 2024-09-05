@@ -66,7 +66,6 @@ _rdxSWend:
     je _r8SWfloat
     cmp rax, 2
     je _r8SWdouble
-    jnz _r8SWfloat
     mov r13, qword ptr [rdx + r10]
     jmp _r8SWend
 _r8SWfloat:
@@ -106,10 +105,10 @@ __winCallLoop:
     jnz __winCallLoop
 __winCall:
     mov rax, rcx
-    mov rdx, r11
-    mov rcx, r12
-    mov r9, r13
-    mov r8, r14
+    mov rcx, r11
+    mov rdx, r12
+    mov r8, r13
+    mov r9, r14
 
     mov qword ptr [rbp + 16], r15
 

@@ -94,7 +94,7 @@ int FCtest2(long long a, float b, char c, int d, char e, char f)
 {
     int ret = a + b + c + d + e + f;
     printf("value a: %i\n", a);
-    printf("value b: %i\n", b);
+    printf("value b: %f\n", b);
     printf("value c: %i\n", c);
     printf("value d: %i\n", d);
     printf("value e: %i\n", e);
@@ -158,11 +158,11 @@ int main(void)
 
     {
         float a = 3.0;
-        size_t values[] = {2, *((size_t*) &a), 4, 5, 6, 8};
+        size_t values[] = {2, *((size_t*) &a), 4, 5, 6, 7};
         size_t sizes[] = {pinADVT_integral, pinADVT_float, pinADVT_integral, pinADVT_integral, pinADVT_integral, pinADVT_integral};
         size_t result = (size_t) pinADcallWIN(FCtest2, values, sizes, 6);
     
-        TEST(result == 2 + 3 + 4 + 5 + 6 + 8, "foreign call succeeded!", "foreign call failed")
+        TEST(result == 2 + 3 + 4 + 5 + 6 + 7, "foreign call succeeded!", "foreign call failed")
     }
 
     END_TEST();
