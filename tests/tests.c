@@ -103,6 +103,19 @@ int FCtest2(long long a, float b, char c, int d, char e, char f)
     return ret;
 }
 
+int FCtest3(double a, float b, char c, int d, char e, double f)
+{
+    int ret = a + b + c + d + e + f;
+    printf("value a: %f\n", a);
+    printf("value b: %f\n", b);
+    printf("value c: %i\n", c);
+    printf("value d: %i\n", d);
+    printf("value e: %i\n", e);
+    printf("value f: %f\n", f);
+
+    return ret;
+}
+
 int main(void)
 {
     volatile int a = _test(
@@ -161,6 +174,17 @@ int main(void)
         size_t values[] = {2, *((size_t*) &a), 4, 5, 6, 7};
         size_t sizes[] = {pinADVT_integral, pinADVT_float, pinADVT_integral, pinADVT_integral, pinADVT_integral, pinADVT_integral};
         size_t result = (size_t) pinADcallWIN(FCtest2, values, sizes, 6);
+    
+        TEST(result == 2 + 3 + 4 + 5 + 6 + 7, "foreign call succeeded!", "foreign call failed")
+    }
+
+    {
+        double a = 2.0;
+        float b = 3.0;
+        double c = 7.0;
+        size_t values[] = { *((size_t*) &a), *((size_t*) &b), 4, 5, 6, *((size_t*) &c)};
+        size_t sizes[] = {pinADVT_double, pinADVT_float, pinADVT_integral, pinADVT_integral, pinADVT_integral, pinADVT_double};
+        size_t result = (size_t) pinADcallWIN(FCtest3, values, sizes, 6);
     
         TEST(result == 2 + 3 + 4 + 5 + 6 + 7, "foreign call succeeded!", "foreign call failed")
     }
