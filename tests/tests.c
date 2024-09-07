@@ -116,6 +116,28 @@ int FCtest3(double a, float b, char c, int d, char e, double f)
     return ret;
 }
 
+int FCtest4(int a, int b, int c, int d, int e, int f)
+{
+    int ret = a + b + c + d + e + f;
+    printf("value a: %i\n", a);
+    printf("value b: %i\n", b);
+    printf("value c: %i\n", c);
+    printf("value d: %i\n", d);
+    printf("value e: %i\n", e);
+    printf("value f: %i\n", f);
+
+    return ret;
+}
+
+int FCtest5(int a, int b)
+{
+    int ret = a + b;
+    printf("value a: %i\n", a);
+    printf("value b: %i\n", b);
+
+    return ret;
+}
+
 int main(void)
 {
     volatile int a = _test(
@@ -175,7 +197,7 @@ int main(void)
         size_t sizes[] = {pinADVT_integral, pinADVT_float, pinADVT_integral, pinADVT_integral, pinADVT_integral, pinADVT_integral};
         size_t result = (size_t) pinADcallWIN(FCtest2, values, sizes, 6);
     
-        TEST(result == 2 + 3 + 4 + 5 + 6 + 7, "foreign call succeeded!", "foreign call failed")
+        TEST(result == 2+3+4+5+6+7, "foreign call succeeded!", "foreign call failed")
     }
 
     {
@@ -186,7 +208,23 @@ int main(void)
         size_t sizes[] = {pinADVT_double, pinADVT_float, pinADVT_integral, pinADVT_integral, pinADVT_integral, pinADVT_double};
         size_t result = (size_t) pinADcallWIN(FCtest3, values, sizes, 6);
     
-        TEST(result == 2 + 3 + 4 + 5 + 6 + 7, "foreign call succeeded!", "foreign call failed")
+        TEST(result == 2+3+4+5+6+7, "foreign call succeeded!", "foreign call failed")
+    }
+
+    {
+        size_t values[] = {2, 3, 4, 5, 6, 7};
+        size_t sizes[] = {pinADVT_integral, pinADVT_integral, pinADVT_integral, pinADVT_integral, pinADVT_integral, pinADVT_integral};
+        size_t result = (size_t) pinADcallWIN(FCtest4, values, sizes, 6);
+    
+        TEST(result == 2+3+4+5+6+7, "foreign call succeeded!", "foreign call failed")
+    }
+
+    {
+        size_t values[] = {2, 3};
+        size_t sizes[] = {pinADVT_integral, pinADVT_integral};
+        size_t result = (size_t) pinADcallWIN(FCtest5, values, sizes, 2);
+    
+        TEST(result == 2+3, "foreign call succeeded!", "foreign call failed")
     }
 
     END_TEST();

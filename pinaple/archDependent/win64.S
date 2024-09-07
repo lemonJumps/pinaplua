@@ -26,85 +26,71 @@ pinADcallWIN:
     push r15
     mov rbp, rsp
 
-    xor r15, r15
+    cmp r9, 1
+    je _winCall1
+    cmp r9, 2
+    je _winCall2
+    cmp r9, 3
+    je _winCall3
+    
+    jmp _winCall4p
 
-    cmp r9d, 0
-    je __winCall
+_winCall1:
+    mov rsp, rdx
 
-    mov rax, qword ptr [r8 + 0]
-    cmp rax, 1
-    je _rcxSWfloat
-    cmp rax, 2
-    je _rcxSWdouble
-    mov r11, qword ptr [rdx + 0]
-    jmp _rcxSWend
-_rcxSWfloat:
-    movss xmm0, dword ptr [rdx + 0]
-    jmp _rcxSWend
-_rcxSWdouble:
-    movsd xmm0, qword ptr [rdx + 0]
-_rcxSWend:
+    movsd xmm0, qword ptr [rsp]
+    pop r11
 
-    dec r9d
-    jz __winCall
+    mov rsp, rbp
+    jmp __winCall
 
-    mov rax, qword ptr [r8 + 8]
-    cmp rax, 1
-    je _rdxSWfloat
-    cmp rax, 2
-    je _rdxSWdouble
-    mov r12, qword ptr [rdx + 8]
-    jmp _rdxSWend
-_rdxSWfloat:
-    movss xmm1, dword ptr [rdx + 8]
-    jmp _rdxSWend
-_rdxSWdouble:
-    movsd xmm1, qword ptr [rdx + 8]
-_rdxSWend:
+_winCall2:
+    mov rsp, rdx
 
-    dec r9d
-    jz __winCall
+    movsd xmm0, qword ptr [rsp]
+    pop r11
+    movsd xmm1, qword ptr [rsp]
+    pop r12
 
-    mov rax, qword ptr [r8 + 16]
-    cmp rax, 1
-    je _r8SWfloat
-    cmp rax, 2
-    je _r8SWdouble
-    mov r13, qword ptr [rdx + 16]
-    jmp _r8SWend
-_r8SWfloat:
-    movss xmm2, dword ptr [rdx + 16]
-    jmp _r8SWend
-_r8SWdouble:
-    movsd xmm2, qword ptr [rdx + 16]
-_r8SWend:
+    mov rsp, rbp
+    jmp __winCall
 
-    dec r9d
-    jz __winCall
+_winCall3:
+    mov rsp, rdx
 
-    mov rax, qword ptr [r8 + 24]
-    cmp rax, 1
-    je _r9SWfloat
-    cmp rax, 2
-    je _r9SWdouble
-    mov r14, qword ptr [rdx + 24]
-    jmp _r9SWend
-_r9SWfloat:
-    movss xmm3, dword ptr [rdx + 24]
-    jmp _r9SWend
-_r9SWdouble:
-    movsd xmm3, qword ptr [rdx + 24]
-_r9SWend:
+    movsd xmm0, qword ptr [rsp]
+    pop r11
+    movsd xmm1, qword ptr [rsp]
+    pop r12
+    movsd xmm2, qword ptr [rsp]
+    pop r13
 
-    dec r9d
+    mov rsp, rbp
+    jmp __winCall
+
+_winCall4p:
+    mov rsp, rdx
+
+    movsd xmm0, qword ptr [rsp]
+    pop r11
+    movsd xmm1, qword ptr [rsp]
+    pop r12
+    movsd xmm2, qword ptr [rsp]
+    pop r13
+    movsd xmm3, qword ptr [rsp]
+    pop r14
+
+    mov rsp, rbp
+
+    sub r9d, 4
     jz __winCall
 
     add rdx, 24
     imul r9, 8
+    mov r15, r9
 
 __winCallLoop:
     push qword ptr [rdx + r9]
-    add r15, 8
     sub r9d, 8
     jnz __winCallLoop
 
