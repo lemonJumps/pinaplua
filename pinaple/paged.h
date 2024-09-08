@@ -33,6 +33,7 @@ struct pinPaged{
 
     struct _pinPvar * descriptors;
 
+    size_t idOffset;
     size_t descriptorCount;
     size_t takenSize;
     size_t size;
@@ -47,20 +48,24 @@ struct pinPaged{
 struct pinPaged *  pinPInit(size_t size);
 
 /**
- * @brief 
+ * @brief add variable into the last page in paged
  * 
- * @param paged 
- * @param data 
+ * if variable cannot fit into page, it will allocate another page for it
+ * 
+ * @param paged page to do operations on
+ * @param data if not null, copies data from pointer
  * @param size data size in bytes
- * @return size_t 
+ * @return size_t ID of variable
  */
 size_t pinPAdd(struct pinPaged * paged, void * data, size_t size);
 
 /**
- * @brief 
+ * @brief remove variable from page
  * 
- * @param paged 
- * @param id 
+ * 
+ * 
+ * @param paged page to do operations on
+ * @param id id of variable to remove
  */
 void pinPRem(struct pinPaged * paged, size_t id);
 

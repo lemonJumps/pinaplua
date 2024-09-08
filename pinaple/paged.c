@@ -30,6 +30,7 @@ struct pinPaged * pinPInit(size_t size)
 
     memset(paged->descriptors, 0, sizeof(struct _pinPvar) * size);
 
+    paged->idOffset = 0;
     paged->descriptorCount = 0;
     paged->takenSize = 0;
     paged->size = size;
@@ -44,6 +45,7 @@ size_t pinPAdd(struct pinPaged * paged, void * data, size_t size)
     // if there's no memory left, allocate new page
     if (size > (paged->size - paged->takenSize))
     {
+        PINAPLE_VM_NOTE("adding new page");
         
         size_t nsize = paged->size;
         // if page is too big for default size, allocate bigger page
@@ -61,6 +63,9 @@ size_t pinPAdd(struct pinPaged * paged, void * data, size_t size)
         // connect all pages together
         lpaged->next = paged;
         paged->previous = lpaged;
+        
+        // add offset to page
+        paged->idOffset = lpaged->descriptorCount + lpaged->idOffset;
 
         // iterate backwards trough all pages setting the new last value
         struct pinPaged * it = paged;
@@ -125,6 +130,81 @@ void pinPDestroy(struct pinPaged * paged)
         last = last->next;
         FREE(last->next);
     }
+}
+
+void pinPDefrag(struct pinPaged * paged)
+{
+    // TODO: defragmentation
+}
+
+int _findValue(struct _pinPvar ** ptr, struct pinPaged * paged, size_t id)
+{
+    if (paged->magic != __magic_value)
+    {
+        PINAPLE_VM_ERROR("page has bad magic, on variable set");
+        return 1;
+    }
+
+    while (1)
+    {
+        if (id < paged->descriptorCount + paged->idOffset)
+        {
+            break; // found
+        }
+        if (paged->next == NULL)
+        {
+            PINAPLE_VM_ERROR("variable id not found");
+            return 2;
+        }
+        paged = paged->next;
+    }
+
+    struct _pinPvar * descriptor = &paged->descriptors[id - paged->idOffset];
+
+    if (descriptor->magic != __magic_value)
+    {
+        PINAPLE_VM_ERROR("variable descriptor has bad magic, on variable set");
+        return 3;
+    }
+
+    *ptr = descriptor;
+    return 0;
+}
+
+void pinPSet(struct pinPaged * paged, size_t id, void * value)
+{
+    struct _pinPvar * descriptor;
+
+    if (_findValue(&descriptor, paged, id))
+    {
+        return;
+    }
+
+    memcpy(descriptor->startingAddress, value, descriptor->size);
+}
+
+void pinPGet(struct pinPaged * paged, size_t id, void * result)
+{
+    struct _pinPvar * descriptor;
+
+    if (_findValue(&descriptor, paged, id))
+    {
+        return;
+    }
+
+    memcpy(result, descriptor->startingAddress, descriptor->size);
+}
+
+void * pinPGetPtr(struct pinPaged * paged, size_t id)
+{
+    struct _pinPvar * descriptor;
+
+    if (_findValue(&descriptor, paged, id))
+    {
+        return NULL;
+    }
+
+    return descriptor->startingAddress;
 }
 
 void _pinPvarInit(struct _pinPvar * pVar, void * address, size_t pos, size_t size)
