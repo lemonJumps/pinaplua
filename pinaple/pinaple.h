@@ -12,6 +12,6 @@
 #ifndef _PAGED_H_
 #define _PAGED_H_
 
-
+void pinNameDBinit();
 
 #endif
