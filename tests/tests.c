@@ -14,6 +14,9 @@
 #include "windows.h"
 #include "psapi.h"
 
+#include "tests.h"
+#include "pagedTest.h"
+
 size_t get_ram_usage()
 {
     PROCESS_MEMORY_COUNTERS_EX pmc;
@@ -46,13 +49,7 @@ void END_TEST()
     } 
 }
 
-#define TEST(_x, _correct, _incorrect) \
-    if (_x) \
-    { printf("\t✅ " _correct "\n"); \
-    sucessCount+=1; \
-    } else { printf("\t❌ " _incorrect "\n"); \
-    failCount+=1; \
-    }
+
 
 int _test(int i, int j)
 {
@@ -226,6 +223,8 @@ int main(void)
     
         TEST(result == 2+3, "foreign call succeeded!", "foreign call failed")
     }
+
+    pagedTest();
 
     END_TEST();
 

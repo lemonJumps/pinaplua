@@ -17,25 +17,41 @@
 
 #define __magic_value 0xBEEF420BUL
 
+struct _pinPvar{
+    void * startingAddress;
+    size_t position;
+    size_t size;
+    uint32_t magic;
+};
+
 struct pinPaged{
+    char * data;
 
+    struct pinPaged * next;
+    struct pinPaged * previous;
+    struct pinPaged * last;
 
+    struct _pinPvar * descriptors;
+
+    size_t descriptorCount;
+    size_t takenSize;
+    size_t size;
     uint32_t magic;
 };
 
 /**
  * @brief initialize paged memory structure
  * 
- * @param paged structure to be un initialized
+ * @param paged structure to be initialized
  */
-void pinPInit(struct pinPaged * paged);
+struct pinPaged *  pinPInit(size_t size);
 
 /**
  * @brief 
  * 
  * @param paged 
  * @param data 
- * @param size 
+ * @param size data size in bytes
  * @return size_t 
  */
 size_t pinPAdd(struct pinPaged * paged, void * data, size_t size);
@@ -123,5 +139,12 @@ void pinPRegisterMemMoveCallback(struct pinPaged * paged, void(* fnPtr)(size_t i
  * @param fnPtr 
  */
 void pinPRegisterMemDeleteCallback(struct pinPaged * paged, void(* fnPtr)(size_t id, void * ptr, size_t size));
+
+/**
+ * @brief internal method for initializing variable descriptor
+ * 
+ * @param pVar 
+ */
+void _pinPvarInit(struct _pinPvar * pVar, void * address, size_t pos, size_t size);
 
 #endif
