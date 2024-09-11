@@ -1,3 +1,8 @@
+## 11.9.20XX
+- Finished all the large parts!
+- Now it's just a matter of gluing it all together.
+- I can't wait to start working on a new game engine OwO.
+
 ## 10.8.20XX
 - Guh, dealing with windows error reporting is going to be my death. The whole mechanism is in microsoft terms, immensly Un-thought trough.
 - The best option seems to be having a debugger process that just places a breakpoints at important functions, and then waits for either an exception, or a crash.

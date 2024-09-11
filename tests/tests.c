@@ -8,14 +8,15 @@
 #include "pthread.h"
 #include "pinADep.h"
 
+#include "tests.h"
+#include "pagedTest.h"
+#include "nameTest.h"
+
 #ifdef _WIN32
 #include <Windows.h>
 
 #include "windows.h"
 #include "psapi.h"
-
-#include "tests.h"
-#include "pagedTest.h"
 
 size_t get_ram_usage()
 {
@@ -225,6 +226,8 @@ int main(void)
     }
 
     pagedTest();
+
+    nameTest();
 
     END_TEST();
 

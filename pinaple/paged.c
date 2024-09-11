@@ -15,6 +15,10 @@
 #include "paged.h"
 #include "pinConfig.h"
 
+PINAPLE_VM_ERR_PRE_REQUISITES
+
+#define __magic_value 0xBEEF420BUL
+
 struct pinPaged * pinPInit(size_t size)
 {
     struct pinPaged * paged = MALLOC(sizeof(struct pinPaged));
@@ -45,14 +49,14 @@ size_t pinPAdd(struct pinPaged * paged, void * data, size_t size)
     // if there's no memory left, allocate new page
     if (size > (paged->size - paged->takenSize))
     {
-        PINAPLE_VM_NOTE("adding new page");
+        PINAPLE_VM_NOTE("adding new page", paged, data, size, 0);
         
         size_t nsize = paged->size;
         // if page is too big for default size, allocate bigger page
         if (size > nsize) 
         {
             // this might not be wrong, but it's definitely noteworthy
-            PINAPLE_VM_WARNING("variable cannot fit into page, increasing size");
+            PINAPLE_VM_WARNING("variable cannot fit into page, increasing size", paged, data, size, 0);
             nsize = size;
         }
         
@@ -84,7 +88,7 @@ size_t pinPAdd(struct pinPaged * paged, void * data, size_t size)
     // in case theres no data, don't copy it
     if (data != NULL)
     {
-        PINAPLE_VM_NOTE("allocating data");
+        PINAPLE_VM_NOTE("copying data", paged, data, size, 0);
         memcpy(pVar->startingAddress, data, size);
     }
 
@@ -96,7 +100,7 @@ void pinPRem(struct pinPaged * paged, size_t id)
     paged->descriptors[id].startingAddress = 0;
     paged->descriptors[id].magic = 0;
 
-    // decrease count and remove trailing messages
+    // decrease count and remove trailing descriptors
     if (id+1 == paged->descriptorCount)
     {
         paged->takenSize -= paged->descriptors[id].size;
@@ -141,7 +145,7 @@ int _findValue(struct _pinPvar ** ptr, struct pinPaged * paged, size_t id)
 {
     if (paged->magic != __magic_value)
     {
-        PINAPLE_VM_ERROR("page has bad magic, on variable set");
+        PINAPLE_VM_ERROR("page has bad magic, on variable set", *ptr, paged, id, 0);
         return 1;
     }
 
@@ -153,7 +157,7 @@ int _findValue(struct _pinPvar ** ptr, struct pinPaged * paged, size_t id)
         }
         if (paged->next == NULL)
         {
-            PINAPLE_VM_ERROR("variable id not found");
+            PINAPLE_VM_ERROR("variable id not found", *ptr, paged, id, 0);
             return 2;
         }
         paged = paged->next;
@@ -163,7 +167,7 @@ int _findValue(struct _pinPvar ** ptr, struct pinPaged * paged, size_t id)
 
     if (descriptor->magic != __magic_value)
     {
-        PINAPLE_VM_ERROR("variable descriptor has bad magic, on variable set");
+        PINAPLE_VM_ERROR("variable descriptor has bad magic, on variable set", *ptr, paged, id, descriptor->magic);
         return 3;
     }
 

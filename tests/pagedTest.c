@@ -6,6 +6,8 @@
 #include "paged.h"
 #include "tests.h"
 
+#define __magic_value 0xBEEF420BUL
+
 void printDescriptor(struct _pinPvar * desc)
 {
     printf("## descriptor ##\n");

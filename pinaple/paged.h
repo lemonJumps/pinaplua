@@ -15,8 +15,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define __magic_value 0xBEEF420BUL
-
 struct _pinPvar{
     void * startingAddress;
     size_t position;
