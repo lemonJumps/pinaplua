@@ -12,6 +12,16 @@
 #ifndef _PAGED_H_
 #define _PAGED_H_
 
-void pinNameDBinit();
+#include "nameDB.h"
+#include "paged.h"
+
+struct pinaple
+{
+    
+};
+
+
+
+
 
 #endif

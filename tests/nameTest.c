@@ -25,7 +25,6 @@ void nameTest()
 
         TEST(result == 0, "value was found in database", "value wasn't found in database")
         TEST(strcmp(value, "World") == 0, "database contains World in Hello", "database doesn't contain World in Hello");
-        
     }
 
     {

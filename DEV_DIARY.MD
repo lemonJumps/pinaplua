@@ -1,3 +1,7 @@
+## 27.9.20XX
+- Project development halted until further notice.
+- I've decided to start working with bevy for now, I'll come back to this later.
+
 ## 11.9.20XX
 - Finished all the large parts!
 - Now it's just a matter of gluing it all together.
